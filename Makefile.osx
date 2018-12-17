@@ -1,0 +1,12 @@
+default: qtrak_preprocess
+
+bin:
+	mkdir -p bin
+
+qtrak_preprocess: bin src/QTRAK/qtrak_preprocess/qtrak_preprocess.m
+	${MATLAB_ROOT}/bin/mcc \
+	-v \
+        -m qtrak_preprocess \
+	-a src/QTRAK/qtrak_preprocess/FFGrab.mexmaci64 \
+	-d bin \
+	-I src/QTRAK/qtrak_preprocess 

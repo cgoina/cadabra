@@ -1,0 +1,10 @@
+ADDITIONS and bug fixes in Version 1.02
+=======================================
+
+QTRAK:
+- Automatic detection of circular arenas added
+- Manual adding of circular arenas in case 
+the automatic detection missed one or more arenas
+- QTRAK runs now under Windows and Linux/Unix 
+(for Linux/Unix AVbin and FFmpeg packages required)
+"clips of actions" functionality)

@@ -1,0 +1,33 @@
+FFGrab.cpp:267: error: `HRESULT' does not name a type
+FFGrab.cpp:524: error: `HRESULT' does not name a type
+FFGrab.cpp:605: error: prototype for `void FFGrabber::runMatlabCommand()' does not match any in class `FFGrabber'
+FFGrab.cpp:270: error: candidate is: void FFGrabber::runMatlabCommand(Grabber*)
+FFGrab.cpp: In member function `void FFGrabber::runMatlabCommand()':
+FFGrab.cpp:608: error: `IMediaControl' was not declared in this scope
+FFGrab.cpp:608: error: `pMediaControl' was not declared in this scope
+FFGrab.cpp:609: error: `pGraphBuilder' was not declared in this scope
+FFGrab.cpp:609: error: `IID_IMediaControl' was not declared in this scope
+FFGrab.cpp:617: error: `BYTE' was not declared in this scope
+FFGrab.cpp:617: error: `ps' was not declared in this scope
+FFGrab.cpp:628: error: `OAFilterState' was not declared in this scope
+FFGrab.cpp:628: error: expected `;' before "fs"
+FFGrab.cpp:636: error: `fs' was not declared in this scope
+FFGrab.cpp:637: error: `State_Stopped' was not declared in this scope
+FFGrab.cpp:639: error: `VideoCBs' was not declared in this scope
+FFGrab.cpp:641: error: `CSampleGrabberCB' was not declared in this scope
+FFGrab.cpp:641: error: `CB' was not declared in this scope
+FFGrab.cpp:650: error: `VIDEOINFOHEADER' was not declared in this scope
+FFGrab.cpp:650: error: `h' was not declared in this scope
+FFGrab.cpp:650: error: expected primary-expression before ')' token
+FFGrab.cpp:650: error: expected `;' before "CB"
+FFGrab.cpp:755: error: expected primary-expression before ')' token
+FFGrab.cpp:759: error: `_CRT_WARN' was not declared in this scope
+FFGrab.cpp:759: error: `_RPT3' was not declared in this scope
+FFGrab.cpp:765: error: `_RPT1' was not declared in this scope
+FFGrab.cpp:783: error: `State_Stopped' was not declared in this scope
+FFGrab.cpp: In member function `int FFGrabber::doCapture()':
+FFGrab.cpp:892: error: `VideoCBs' was not declared in this scope
+FFGrab.cpp:892: error: 'class std::vector<int, std::allocator<int> >' has no member named 'add'
+FFGrab.cpp: In function `void mexFunction(int, mxArray**, int, const mxArray**)':
+FFGrab.cpp:1121: error: `DDG' was not declared in this scope
+
