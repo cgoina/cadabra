@@ -264,9 +264,9 @@ if ~(exist(featFile, 'file')==2)
     trackinginfoFileName = [Files.strInVideoPath '/' Files.strInVideoFName '_trackinginfo.mat'];
     save(trackinginfoFileName, 'currentFrame_O1', 'currentFrame_O2', 'object_1', 'object_2');
     
-    for i=1:params.nchambers,
-        fclose(Files.FeatureFID{i} );
-        fclose(Files.ErrorFID{i} );
+    for i=1:params.nchambers
+        fclose(Files.FeatureFID{i});
+        fclose(Files.ErrorFID{i});
     end
     
 end

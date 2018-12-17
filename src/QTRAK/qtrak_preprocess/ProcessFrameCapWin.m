@@ -70,7 +70,7 @@ global Files FigureHandle Panels;
         PlotImage_Captioning( data, images, width, height, FigureHandle, frameNr );            
 
     catch err
-        fprintf(2, '\nFrameNumber: %06d %s', frameNr, err.message);
+        fprintf(Files.ErrorFID{ic}, '\nFrameNumber: %06d %s', frameNr, err.message);
         rethrow(err);
     end
 

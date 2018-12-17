@@ -476,7 +476,10 @@ fly_feat.der_obj1_movedir = pi/180*(conv2(fly_feat.obj1.movedir,[1 0 -1],'same')
 fly_feat.der_obj2_movedir = pi/180*(conv2(fly_feat.obj2.movedir,[1 0 -1],'same'));
 
 %Save the probableLunge.mat per Eric request
-save probablelunge.mat ind1_count ind2_count;
+
+[featureFilePath, ~] = fileparts(FeatureFileName);
+probableLungeFileName = fullfile(featureFilePath, 'probablelunge.mat');
+save(probableLungeFileName, 'ind1_count', 'ind2_count');
 
 % ==================================================
 % LUNGE DETECTION STEPS 1.2 & 2:
