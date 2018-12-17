@@ -594,7 +594,7 @@ global scale chamber ic params;
 % have not been measured yet. In this case, the objects are initialized
 % to contain zero values. 
 
-if nargin<2,
+if nargin<2
     obj_1.xc = 0;         obj_1.yc = 0;           obj_1.area = 0;
     obj_1.ra = 0;         obj_1.mean = 0;         obj_1.mv_d = 0;
     obj_1.mv_phi = 0;     obj_1.head = -99;       obj_1.Area = 0;
@@ -606,7 +606,7 @@ if nargin<2,
     obj_1.eyc = 0;        obj_1.A = 0;            obj_1.B = 0;
     obj_1.phi = 0;
 end
-if nargin<3,
+if nargin<3
     obj_2.xc = 0;         obj_2.yc = 0;           obj_2.area = 0;
     obj_2.ra = 0;         obj_2.mean = 0;         obj_2.mv_d = 0;
     obj_2.mv_phi = 0;     obj_2.head = -99;       obj_2.Area = 0;
