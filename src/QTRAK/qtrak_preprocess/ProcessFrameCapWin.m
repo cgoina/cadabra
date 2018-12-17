@@ -26,7 +26,7 @@
 % values arranged row-wise. The image coordinate system is such that 
 % the bottom left corner is (0,0). 
 
-function ProcessFrameCapWin( data, images, width, height, frameNr, time )
+function ProcessFrameCapWin(data, images, width, height, frameNr, time)
 global ic dt params CurrentK;
 global Files FigureHandle Panels;
 

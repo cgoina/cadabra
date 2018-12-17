@@ -151,7 +151,7 @@ if ~(exist(featFile, 'file')==2)
     Files.FeatureFID = cell(params.nchambers,1);
     Files.ErrorFID = cell(params.nchambers,1);
     
-    for i=1:params.nchambers,
+    for i=1:params.nchambers
         
         FeatureFileName{i} = [inputFilePath inputFileName '_' num2str(i) '.feat'];
         ErrorFileName{i} = [inputFilePath inputFileName '_' num2str(i) '.err'];
@@ -183,7 +183,7 @@ if ~(exist(featFile, 'file')==2)
         fprintf(Files.FeatureFID{i},'\n');
         
         Files.ErrorFID{i} = fopen(ErrorFileName{i},'a');
-        if Files.ErrorFID{i} == -1,
+        if Files.ErrorFID{i} == -1
             disp('ERROR: The Following Error file could not be Created');
             disp(['         NAME: ', ErrorFileName{i}]);
             disp(['         PATH: ', Files.strInVideoPath slashstr]);
@@ -245,7 +245,7 @@ if ~(exist(featFile, 'file')==2)
     mearoidat = [inputFilePath inputFileName '_mearoi.mat'];
     load(mearoidat);
     
-    if ispc,
+    if ispc
         mexDDGrab( 'setChambers', mea, roiCorners, params.bool_dot );
     else
         FFGrab( 'setChambers', mea, roiCorners, params.bool_dot );

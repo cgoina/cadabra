@@ -33,7 +33,7 @@ function [fly_feat,intNFrms] = read_feat(FeatureFileName,params)
 
 global ind1_count ind2_count;
 
-if nargin < 2,
+if nargin < 2
     params.border = 0;
     params.oneobj = 0;
 end

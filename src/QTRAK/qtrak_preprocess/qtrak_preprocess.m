@@ -264,7 +264,7 @@ global nframes_mean mean_image std_image frmindx;
 
         %%
         % Total number of frames, frame rate, dt
-        a = mmread(Files.strInFName,1);   
+        a = mmread(Files.strInFName);
         intNFrms = abs(a.nrFramesTotal);            % The number of frames to process
         nframes_mean = min(nframes_mean,intNFrms);
         intFps = intNFrms / a.totalDuration;        % Frame rate 
@@ -375,17 +375,14 @@ global nframes_mean mean_image std_image frmindx;
         %%
         % Display the final time measurement
 
-         telapsed = toc;
-         fprintf('time elapsed: %02.0f:%02.0f mm:ss\n', floor(telapsed/60), mod(telapsed,60));
+        telapsed = toc;
+        fprintf('time elapsed: %02.0f:%02.0f mm:ss\n', floor(telapsed/60), mod(telapsed,60));
 
     end %for
         
     %%
     % Close the figure
-%     if params.bool_plottrack && FigureHandle,
-%     if FigureHandle,
-%         close(FigureHandle);
-%     end
+    close all force;
     
     if params.unprocessedMvNum > 0
         dlgname = 'List of unprocessed movie files';
@@ -396,3 +393,4 @@ global nframes_mean mean_image std_image frmindx;
         warningstring{params.unprocessedMvNum+2} = 'Please run qtrak_preprocess for each movie one by one.';
         warndlg(warningstring,dlgname);        
     end
+    

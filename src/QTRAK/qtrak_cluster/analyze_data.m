@@ -36,46 +36,38 @@ function analyze_data(path,name,params)
 %output of the aggress_court.mat.
 global ind1_count ind2_count;
 
-min_b_len.long = 1; max_gap.long = .6; % [s] (wing extension)
-min_b_len.short = 0.01; max_gap.short = 0.03; % [s] (wing flick!)
-% Circling
-min_b_len_circ = .69; max_gap_circ = .6; % [s]
-% Chasing
-min_b_len_chase = 1; max_gap_chase = 0.6; % [s]
-% Wing threats
-b_len_threat.min = .3; b_len_threat.max = 30;
-max_gap_threat = .5; % [s]
+    min_b_len.long = 1; max_gap.long = .6; % [s] (wing extension)
+    min_b_len.short = 0.01; max_gap.short = 0.03; % [s] (wing flick!)
+    % Circling
+    min_b_len_circ = .69; max_gap_circ = .6; % [s]
+    % Chasing
+    min_b_len_chase = 1; max_gap_chase = 0.6; % [s]
+    % Wing threats
+    b_len_threat.min = .3; b_len_threat.max = 30;
+    max_gap_threat = .5; % [s]
 
-% ANALYZE DATA
-% DECLARE VARIABLES USED FOR PLOT FUNCTIONS 
-% CONSISTING OF DATA FOR ALL GENOTYPES
-ngens = 1;
-nmovs = zeros(ngens,1); dts = cell(ngens,1); nframes = dts;
-obj1 = cell(ngens,1); obj2 = cell(ngens,1); 
-lunges = cell(ngens,1); tussls = cell(ngens,1);
-jumps = cell(ngens,1); chases = cell(ngens,1); charges = cell(ngens,1); 
-courts = cell(ngens,1); 
-wings.ext.r = cell(ngens,1); wings.ext.l = cell(ngens,1); wings.ext.b = cell(ngens,1);
-wings.fli.r = cell(ngens,1); wings.fli.l = cell(ngens,1); wings.fli.b = cell(ngens,1);
-wings.threat = cell(ngens,1);
-wings.min_bout.long = 0; wings.min_bout.short = 0; wings.max_gap.long = 0; wings.max_gap.short = 0;
-wings.bout_threat = 0; wings.max_gap_threat = 0;
-copu.pre = dts; copu.post = dts; copu.int = dts;
-dists = cell(ngens,1); %ddists = cell(ngens,1);
-proxi.times = cell(ngens,1); proxi.indi = cell(ngens,1);
-addname = ['analysis' params.slash];
-[s,mess,messid] = mkdir([path addname]); %#ok<NASGU>
-%h1 = waitbar(0,'Analyzing Data');
-% COLLECT DATA FOR EACH GENOTYPE
-%     fprintf(1,'gens left: %g\n',ngens-igen+1);
-%    tic;
-    %if iscell(path), path1 = path{igen}; else path1 = path; end
-    %genfname = gen_ident{igen}; ind = strfind(genfname,params.slash); if numel(ind), genfname(ind) = '_'; end 
-    % DATA PRESENT?
+    % ANALYZE DATA
+    % DECLARE VARIABLES USED FOR PLOT FUNCTIONS 
+    % CONSISTING OF DATA FOR ALL GENOTYPES
+    ngens = 1;
+    nmovs = zeros(ngens,1); dts = cell(ngens,1); nframes = dts;
+    obj1 = cell(ngens,1); obj2 = cell(ngens,1); 
+    lunges = cell(ngens,1); tussls = cell(ngens,1);
+    jumps = cell(ngens,1); chases = cell(ngens,1); charges = cell(ngens,1); 
+    courts = cell(ngens,1); 
+    wings.ext.r = cell(ngens,1); wings.ext.l = cell(ngens,1); wings.ext.b = cell(ngens,1);
+    wings.fli.r = cell(ngens,1); wings.fli.l = cell(ngens,1); wings.fli.b = cell(ngens,1);
+    wings.threat = cell(ngens,1);
+    wings.min_bout.long = 0; wings.min_bout.short = 0; wings.max_gap.long = 0; wings.max_gap.short = 0;
+    wings.bout_threat = 0; wings.max_gap_threat = 0;
+    copu.pre = dts; copu.post = dts; copu.int = dts;
+    dists = cell(ngens,1); %ddists = cell(ngens,1);
+    proxi.times = cell(ngens,1); proxi.indi = cell(ngens,1);
+    addname = ['analysis' params.slash];
+    [s,mess,messid] = mkdir([path addname]);
     
     fid = fopen([path addname name '_analysis.mat'],'r');
-    if (fid < 0) || params.analyze_new,
-
+    if (fid < 0) || params.analyze_new
         Y1.t = []; Y1.x = []; Y1.y = [];
         Y1.vx = []; Y1.vy = []; Y1.v = []; Y1.vs = []; Y1.do = [];
         Y1.am = []; Y1.as = []; Y1.lm = []; Y1.ls = [];
@@ -104,13 +96,13 @@ addname = ['analysis' params.slash];
         nmov = params.nchambers;
         ifile = 0;
         
-        for imov=1:nmov,
+        for imov=1:nmov
             % READ MOVIE FEATURE FILE
             %if iscell(name), FileN = name{gen_ind(imov)}; else FileN = name; end
             FileN = [path name '_' num2str(imov) '.feat'];
 
             fid = fopen(FileN,'r');
-            if (fid < 0) || params.analyze_new,
+            if (fid < 0) || params.analyze_new
                 % READ OUT FEATURE TEXT FILE
                 [fly_feat,NFrms] = read_feat(FileN,params);
                 save([FileN(1:end-5) '_feat.mat'],'fly_feat','NFrms');
@@ -388,6 +380,5 @@ addname = ['analysis' params.slash];
         fclose(fid); fclose(fid2);
     end
 
-%close(h1);
 
 end

@@ -41,15 +41,13 @@ persistent h1;
         
         frmindx = frmindx + 1;
         if (frmindx == 1)
-            h1 = waitbar(0,'Computing background image');
+            h1 = waitbar(0, 'Computing background image', 'Name', 'WaitForBackground');
             mean_image = zeros(height,width,3);
             std_image = zeros(height,width,3);
-%         elseif (frmindx >= nframes_mean)
-%             close(h1);
         elseif (frmindx >= 1)
             mean_image = mean_image + data;
             std_image = std_image + data.^2;
-            waitbar(frmindx/nframes_mean,h1);
+            waitbar(frmindx/nframes_mean, h1);
         end
     catch err
         err.disp;
