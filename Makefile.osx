@@ -3,22 +3,23 @@ default: qtrak_preprocess
 bin:
 	mkdir -p bin
 
-src/QTRAK/qtrak_preprocess/FFGrab.mexmaci64: src/QTRAK/qtrak_preprocess/FFGrab.cpp
+src/QTRAK/qtrak_common/FFGrab.mexmaci64: src/QTRAK/qtrak_common/FFGrab.cpp
 	${MATLAB_ROOT}/bin/mex \
 	-I/Users/goinac/Work/misc/avbin-repos/avbin/include \
 	-I/Users/goinac/Work/misc/avbin-repos/avbin/libav \
-	src/QTRAK/qtrak_preprocess/FFGrab.cpp \
-	-outdir src/QTRAK/qtrak_preprocess \
+	src/QTRAK/qtrak_common/FFGrab.cpp \
+	-outdir src/QTRAK/qtrak_common \
 	-L/Users/goinac/Work/misc/avbin-repos/avbin/dist/macosx-x86-64 -lavbin.11 \
 	-v
 
-qtrak_preprocess: bin src/QTRAK/qtrak_preprocess/qtrak_preprocess.m src/QTRAK/qtrak_preprocess/FFGrab.mexmaci64
+qtrak_preprocess: bin src/QTRAK/qtrak_preprocess/qtrak_preprocess.m src/QTRAK/qtrak_common/FFGrab.mexmaci64
 	${MATLAB_ROOT}/bin/mcc \
 	-v \
         -m qtrak_preprocess \
-	-a src/QTRAK/qtrak_preprocess/FFGrab.mexmaci64 \
-	-a src/QTRAK/qtrak_preprocess/fhistc.mexmaci64 \
-	-a src/QTRAK/qtrak_preprocess/ProcessFrameMeanWin.m \
-	-a src/QTRAK/qtrak_preprocess/ProcessFrameCapWin.m \
 	-d bin \
-	-I src/QTRAK/qtrak_preprocess 
+	-I src/QTRAK/qtrak_preprocess \
+	-I src/QTRAK/qtrak_common \
+	-a src/QTRAK/qtrak_common/FFGrab.mexmaci64 \
+	-a src/QTRAK/qtrak_common/fhistc.mexmaci64 \
+	-a src/QTRAK/qtrak_common/ProcessFrameMeanWin.m \
+	-a src/QTRAK/qtrak_common/ProcessFrameCapWin.m
