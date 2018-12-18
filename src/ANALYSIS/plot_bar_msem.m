@@ -102,10 +102,10 @@ if ~params.boxplot || ~numel(X),
         end
     end
     % Legend
-    if ~params.oneobj && (size(data.mea,2) == 2),
+    if ~params.oneobj && (size(data.mea,2) == 2)
         if params.winlos, h=legend('winner','loser'); else h=legend('fly 1','fly 2'); end
-        legend(h,'boxoff');
-    elseif ~params.oneobj && (size(data.mea,2) == 3),
+        legend('boxoff');
+    elseif ~params.oneobj && (size(data.mea,2) == 3)
         text(ngens,maxy(2),'< 5 mm, 5 - 10 mm, > 10 mm','HorizontalAlignment','Right','VerticalAlignment','Top');
     end
     if isstruct(utest) && numel(X), plot_utests(utest,X+min(X),G,data,max(maxy),params); end

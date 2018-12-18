@@ -239,7 +239,7 @@ else
 end
 set(gca,'YTick',t); set(gca,'YTickLabel', ytick_lab); set(gca,'FontSize',params.axisfontsize);
 ylim([0 params.max_frames]); ylabel('MEAN period per fly pair [min]');
-axis([0 ngens+1 0 params.max_frames]); h = legend('move','stop'); legend(h,'boxoff');
+axis([0 ngens+1 0 params.max_frames]); h = legend('move','stop'); legend('boxoff');
 titl = ['MOVE/STOP periods: v > ' num2str(thres_min) ' mm/s < ' num2str(thres_max) ...
         ' mm/s, min. length = ' num2str(min_len*dts{1}(1),'%6.1f') ' s'];
 if ~params.oneobj, 

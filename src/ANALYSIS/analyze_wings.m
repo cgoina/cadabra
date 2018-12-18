@@ -274,7 +274,7 @@ if params.plots.heatmaps.wingrel && min(params.plots.heatmaps.wingrel_vec) < 4,
             end
         end
         text(1-dw-sh+0.03,0.1,'L'); text(1-sh+0.03,0.1,'R');
-        h = legend('cclkw','clkw'); legend(h,'boxoff'); axis([dw ngens+dw -1 1]);
+        h = legend('cclkw','clkw'); legend('boxoff'); axis([dw ngens+dw -1 1]);
         set(gca,'FontSize',params.axisfontsize);
         set(gca,'XTick',dw:1:ngens+dw); set_xtick_label(gen_ident,90,params.cross_to,params.axisfontsize);
         set(gca,'YTick',-1:.5:1); set(gca,'YTickLabel',{100,50,0,50,100});
@@ -543,7 +543,7 @@ if ~params.oneobj && params.plots.stat.wingextflydist,
     axis([0.5 ngens+.5 -1 1]);
     set(gca,'XTick',1:ngens); set_xtick_label(gen_ident,90,params.cross_to,params.axisfontsize);
     set(gca,'FontSize',params.axisfontsize);
-    ylabel('normalized distance [-]'); h = legend('prior','post'); legend(h,'boxoff');
+    ylabel('normalized distance [-]'); legend('prior','post'); legend('boxoff');
     titl = 'Mean Norm. Distance - Prior & Post Wing Extension';
     mtit(titl,'FontSize',params.axisfontsize,'yoff',.0); set(FID,'Name',titl);
     if params.pdf, print(['-f' num2str(FID)],'-dpsc2',appnd,params.PSFileN); end

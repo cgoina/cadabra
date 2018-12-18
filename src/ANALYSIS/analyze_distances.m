@@ -133,7 +133,7 @@ if params.plots.stat.dist,
         set(gca,'YTick',t); set(gca,'YTickLabel',ytick_lab); set(gca,'FontSize',params.axisfontsize);
         ylabel('fly proximity time [min] (mean)');
         axis([0 ngens+1 0 params.max_frames]);
-        h = legend('< 5 mm','5 - 10 mm','> 10 mm'); legend(h,'boxoff');
+        legend('< 5 mm','5 - 10 mm','> 10 mm'); legend('boxoff');
         titl = 'Fly Proximity Period';
         set(FID,'Name',titl); mtit(titl,'FontSize',params.axisfontsize+2,'yoff',.04);
         if params.pdf, print(['-f' num2str(FID)],'-dpsc2',appnd,params.PSFileN); end
@@ -226,7 +226,7 @@ if params.plots.stat.dist,
         set(gca,'YTick',t); set(gca,'YTickLabel',ytick_lab); set(gca,'FontSize',params.axisfontsize);
         ylabel('time on food [min] (median)');
         axis([0 ngens+1 0 params.max_frames]);
-        h = legend('< 5 mm','5 - 10 mm','> 10 mm'); legend(h,'boxoff');
+        h = legend('< 5 mm','5 - 10 mm','> 10 mm'); legend('boxoff');
         titl = 'Time Spent in Different Distances from Food';
         if ~params.oneobj,
             if params.winlos, titl = [titl ' L: winner, R: loser']; else titl = [titl ' L: fly 1, R: fly 2']; end;

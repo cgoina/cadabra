@@ -189,7 +189,7 @@ if params.plots.stat.velocity,
         set(h,'FontSize',params.axisfontsize);
         xlim([minv maxv]); xlabel('velocity [mm/s]'); ylabel('SEM duration [s]');
         axis([minv maxv 0.5 1000]);
-        titl = 'Total Duration of Velocities'; h = legend(gen_ident); legend(h,'boxoff');
+        titl = 'Total Duration of Velocities'; h = legend(gen_ident); legend('boxoff');
         set(FID,'Name',titl); mtit(titl,'FontSize',params.axisfontsize+2,'yoff',.0);
         if params.pdf, print(['-f' num2str(FID)],'-dpsc2',appnd,params.PSFileN); end
     end
