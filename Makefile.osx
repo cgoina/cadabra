@@ -1,4 +1,4 @@
-default: qtrak_preprocess qtrak_cluster
+default: qtrak_preprocess qtrak_cluster analysis
 
 bin:
 	mkdir -p bin
@@ -18,10 +18,11 @@ src/QTRAK/qtrak_common/FFGrab.mexmaci64: src/QTRAK/qtrak_common/FFGrab.cpp
 	-L/Users/goinac/Work/misc/avbin-repos/avbin/dist/macosx-x86-64 -lavbin.11 \
 	-v
 
+mex_compile: src/QTRAK/qtrak_common/fhistc.mexmaci64 \
+             src/QTRAK/qtrak_common/FFGrab.mexmaci64
 
 qtrak_preprocess: bin src/QTRAK/qtrak_preprocess/qtrak_preprocess.m \
-		  src/QTRAK/qtrak_common/FFGrab.mexmaci64 \
-		  src/QTRAK/qtrak_common/fhistc.mexmaci64
+		  mex_compile
 	${MATLAB_ROOT}/bin/mcc \
 	-v \
         -m qtrak_preprocess \
@@ -35,8 +36,7 @@ qtrak_preprocess: bin src/QTRAK/qtrak_preprocess/qtrak_preprocess.m \
 
 
 qtrak_cluster: bin src/QTRAK/qtrak_cluster/qtrak_cluster.m \
-	       src/QTRAK/qtrak_common/FFGrab.mexmaci64 \
-	       src/QTRAK/qtrak_common/fhistc.mexmaci64
+	       mex_compile
 	${MATLAB_ROOT}/bin/mcc \
 	-v \
         -m qtrak_cluster \
@@ -47,3 +47,12 @@ qtrak_cluster: bin src/QTRAK/qtrak_cluster/qtrak_cluster.m \
 	-a src/QTRAK/qtrak_common/fhistc.mexmaci64 \
 	-a src/QTRAK/qtrak_common/ProcessFrameMeanWin.m \
 	-a src/QTRAK/qtrak_common/ProcessFrameCapWin.m
+	cp src/QTRAK/qtrak_cluster/*.mat bin
+
+analysis: bin src/ANALYSIS/analysis.m
+	${MATLAB_ROOT}/bin/mcc \
+	-v \
+        -m analysis \
+	-d bin \
+	-I src/ANALYSIS
+	cp src/ANALYSIS/*.mat bin
