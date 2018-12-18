@@ -4,3 +4,5 @@
 bin
 data
 *.mat
+*.mexmaci64
+*.mexw64
