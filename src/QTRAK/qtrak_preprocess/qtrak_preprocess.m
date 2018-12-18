@@ -37,20 +37,6 @@
 
 function qtrak_preprocess
 
-%#function ProcessFrameCapWin
-%#function PlotImage_Captioning
-%#function histfit 
-%#function fhist gmmactiv gmmpost
-%#function FFGrab seg_fullfly_inflexbox
-%#function fhistc ellipsefit write_sequence
-%#function gauss write_sequence_crop callback
-%#function seg_fullfly_inconstbox segfly fotsu
-%#function intersect_flies fly_bodymeas switch_flies
-%#function fly_headtailwings mask2ellipses gmm gmminit consist
-%#function kmeans dist2 gmmem gmmprob histfit
-%#function auto_cal auto_cal_circ CircularHough_Grd fhistc openavi
-%#function calibrate calibrate fhistfit GNU_message
-
 global params chamber scale;
 global slashstr Files NFiles strInVideoFNameArray;
 global FigureHandle Panels PanelSize;
@@ -269,70 +255,44 @@ global nframes_mean mean_image std_image frmindx;
         nframes_mean = min(nframes_mean,intNFrms);
         intFps = intNFrms / a.totalDuration;        % Frame rate 
         dt = 1 / intFps;                            % Inter-frame separation
-         
+
+
         %%
-        % Set the appropriate flag if the background file already exists. 
+        % Begin frame capture for background image calculation
+        % Only nframes_mean frames starting from intStartFrm are used 
 
-        ResumeBackground = 0;
-        BackgroundExist = exist([BackgroundFileName '_win'],'file');
-        if BackgroundExist
-            disp('>> background image file exists');
-            ResumeBackground = 1;
-        end
+        % Randomly select 'nframes_mean' frames
+        frmindx = 0;
+        randframes = randperm(max(round(intNFrms/2), nframes_mean));
+        randframes = sort(randframes(1:nframes_mean) + intStartFrm);
 
-        if ~ResumeBackground
-
-            %%
-            % Begin frame capture for background image calculation
-            % Only nframes_mean frames starting from intStartFrm are used 
-            
-            % Randomly select 'nframes_mean' frames
-            frmindx = 0;
-            randframes = randperm(max(intNFrms/2,nframes_mean));
-            randframes = sort(randframes(1:nframes_mean) + intStartFrm);
-
-            try
-                mmread(Files.strInFName,randframes, ...
-                        [],false,true,'ProcessFrameMeanWin', false);
-            catch err
-                if ~strcmp(err.message(end-14:end),'STOP PROCESSING')
-                    rethrow(err); 
-                end
+        try
+            mmread(Files.strInFName, randframes, [], false, true, 'ProcessFrameMeanWin', false);
+        catch err
+            if ~strcmp(err.message(end-14:end),'STOP PROCESSING')
+                rethrow(err); 
             end
-
-            %%
-            % Calculate the actual mean and std images, and adjust them
-            nframes_mean = frmindx;
-            mean_image = mean_image / nframes_mean;
-            std_image = std_image / nframes_mean - mean_image.^2;
-            mean_image = 0.11 * mean_image(:,:,1) + ... 
-                         0.59 * mean_image(:,:,2) + 0.3 * mean_image(:,:,3);
-            std_image = 0.11 * std_image(:,:,1) + ... 
-                        0.59 * std_image(:,:,2) + 0.3 * std_image(:,:,3);
-
-            %%
-            % Save the result to a file
-
-            [BackgroundFID] = fopen([BackgroundFileName '_win'],'w');
-            fwrite(BackgroundFID,size(mean_image,1),'double');
-            fwrite(BackgroundFID,size(mean_image,2),'double');
-            fwrite(BackgroundFID,mean_image,'double');
-            fwrite(BackgroundFID,std_image,'double');
-            fclose(BackgroundFID);
-
-        else
-
-            %%
-            % Read the background image from the file 
-            
-            [BackgroundFID] = fopen([BackgroundFileName '_win'],'r');
-            nrows = fread(BackgroundFID,1,'double');
-            ncols = fread(BackgroundFID,1,'double');
-            mean_image = fread(BackgroundFID,[nrows ncols],'double');
-            std_image = fread(BackgroundFID,[nrows ncols], 'double');
-            fclose(BackgroundFID);
-            
         end
+
+        %%
+        % Calculate the actual mean and std images, and adjust them
+        nframes_mean = frmindx;
+        mean_image = mean_image / nframes_mean;
+        std_image = std_image / nframes_mean - mean_image.^2;
+        mean_image = 0.11 * mean_image(:,:,1) + ... 
+                     0.59 * mean_image(:,:,2) + 0.3 * mean_image(:,:,3);
+        std_image = 0.11 * std_image(:,:,1) + ... 
+                    0.59 * std_image(:,:,2) + 0.3 * std_image(:,:,3);
+
+        %%
+        % Save the result to a file
+
+        [BackgroundFID] = fopen([BackgroundFileName '_win'],'w');
+        fwrite(BackgroundFID,size(mean_image,1),'double');
+        fwrite(BackgroundFID,size(mean_image,2),'double');
+        fwrite(BackgroundFID,mean_image,'double');
+        fwrite(BackgroundFID,std_image,'double');
+        fclose(BackgroundFID);
 
         %%
         % Begin frame capture for feature identification

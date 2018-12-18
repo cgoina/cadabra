@@ -1,5 +1,7 @@
 default: qtrak_preprocess qtrak_cluster analysis
 
+AVBIN_DIR=/Users/goinac/Work/misc/avbin-repos/avbin
+
 bin:
 	mkdir -p bin
 
@@ -11,11 +13,11 @@ src/QTRAK/qtrak_common/fhistc.mexmaci64: src/QTRAK/qtrak_common/fhistc.c
 
 src/QTRAK/qtrak_common/FFGrab.mexmaci64: src/QTRAK/qtrak_common/FFGrab.cpp
 	${MATLAB_ROOT}/bin/mex \
-	-I/Users/goinac/Work/misc/avbin-repos/avbin/include \
-	-I/Users/goinac/Work/misc/avbin-repos/avbin/libav \
+	-I${AVBIN_DIR}/include \
+	-I${AVBIN_DIR}/libav \
 	src/QTRAK/qtrak_common/FFGrab.cpp \
 	-outdir src/QTRAK/qtrak_common \
-	-L/Users/goinac/Work/misc/avbin-repos/avbin/dist/macosx-x86-64 -lavbin.11 \
+	-L-I${AVBIN_DIR}/dist/macosx-x86-64 -lavbin.11 \
 	-v
 
 mex_compile: src/QTRAK/qtrak_common/fhistc.mexmaci64 \

@@ -4,6 +4,7 @@
 *.mat
 *.mexmaci64
 *.mexw64
+*.mexa64
 bin
 data
 local

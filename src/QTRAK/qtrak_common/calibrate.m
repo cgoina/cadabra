@@ -45,7 +45,7 @@ global intNFrms;
     params.bool_cal = 0; % When ROI.mat exists and use one calibraton, this should be 0 in order to avoid recalcuate scale 
     params.loadfile = 'No';
     params.stopProcess = 0;
-    if ~params.bool_recal, %if use one calibration
+    if ~params.bool_recal %if use one calibration
         calfname = params.firstfname; 
     else
         calfname = [path slashstr fname '_1_roi.mat']; 
@@ -73,12 +73,12 @@ global intNFrms;
     % Ask if the user wants to use another calibration file, or 
     % or if the user wants to specify the ROI's and calibration manually.
 
-    if (~params.bool_asked),
+    if (~params.bool_asked)
         params.firstfname = [path slashstr fname '_1_roi.mat']; 
         ROI_FID = fopen(calfname, 'r');
-        if (ROI_FID > 0),
+        if (ROI_FID > 0)
             dot = questdlg('Re-Calibrate?','Calibration File Found','Yes','No','Quit','No');
-            if strcmp('Yes',dot), 
+            if strcmp('Yes',dot)
                 params.bool_cal = 1; 
             elseif strcmp('Quit', dot)
                 params.QuitPrg = 1;
@@ -122,16 +122,16 @@ global intNFrms;
         def = {num2str(params.chamberNum)};
         params.chamberNum = str2double(cell2mat(inputdlg(prompt,dlg_title,1,def)));
        
-        if strcmp(params.nchambers,'Yes'),
+        if strcmp(params.nchambers,'Yes')
 
             %% Try Auto-Calibration            
             coord = auto_cal(mean_image);
             
             % Did the auto-calibration find the food patch?
-            if isstruct(coord),
+            if isstruct(coord)
                 if numel(coord.x) == 4, params.nchambers = 2; else params.nchambers = 1; end;
                 
-                for i=1:params.nchambers,
+                for i=1:params.nchambers
                     rectangle('Position',[coord.x(2*i-1) coord.y(1) ...
                         coord.x(2*i)-coord.x(2*i-1) coord.y(2)-coord.y(1)],...
                         'EdgeColor','b');
@@ -142,7 +142,7 @@ global intNFrms;
             end
 
             % Auto-calibration inaccurate?
-            if strcmp(button,'No') || ~numel(button),
+            if strcmp(button,'No') || ~numel(button)
                 bool_auto = 0;
                 axes(Panels.HMenu); cla(Panels.HMenu);
                 image(Panels.BlankMenuPanel);
@@ -176,7 +176,7 @@ global intNFrms;
         % from the region provided by user, known configuration dimensions, 
         % and scaling factors. The variable ROI is measured in pixels.
 
-        if (params.nchambers == 1),
+        if (params.nchambers == 1)
 
             bound = cell(1,1); 
             bound{1} = floor( [ 

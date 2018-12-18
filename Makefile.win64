@@ -92,7 +92,7 @@ qtrak_cluster: bin src/QTRAK/qtrak_cluster/qtrak_cluster.m \
 	-a src/QTRAK/qtrak_common/ProcessFrameCapWin.m
 
 analysis: bin src/ANALYSIS/analysis.m
-	${MATLAB_ROOT}/bin/mcc \
+	"${MCC}" \
 	-v \
         -m analysis \
 	-d bin \

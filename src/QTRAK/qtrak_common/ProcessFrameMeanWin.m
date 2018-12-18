@@ -30,7 +30,6 @@
 function ProcessFrameMeanWin(data, images, width, height, frameNr, time) %#ok<INUSD,INUSL>
 global mean_image std_image nframes_mean frmindx;
 persistent h1;
-
     try
         %% 
         % If it's the first frame, then initialize the progress bar 
@@ -44,12 +43,14 @@ persistent h1;
             h1 = waitbar(0, 'Computing background image', 'Name', 'WaitForBackground');
             mean_image = zeros(height,width,3);
             std_image = zeros(height,width,3);
-        elseif (frmindx >= nframes_mean)
-            close(h1)
-        elseif (frmindx >= 1)
+        end
+        if (frmindx >= 1)
             mean_image = mean_image + data;
             std_image = std_image + data.^2;
             waitbar(frmindx/nframes_mean, h1);
+        end
+        if (frmindx >= nframes_mean)
+            close(h1)
         end
     catch err
         err.disp;
