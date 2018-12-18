@@ -49,7 +49,7 @@ global Files FigureHandle Panels;
         % feature incurs a heavy performance penalty (relative to its 
         % function) and should be used only when needed. 
         
-        if params.bool_plotcount, 
+        if params.bool_plotcount
             minu = floor((frameNr-2)*dt/60);
             sec = floor((frameNr-2)*dt-minu*60);
             hun=floor(((frameNr-2)*dt-minu*60-sec)*100);

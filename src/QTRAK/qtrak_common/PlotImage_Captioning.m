@@ -672,16 +672,16 @@ l0 = numel(indl0);
 
 ind_morph = 0;
 % ...................(8a)
-if l0 > 2 && ~params.bool_dot,
+if l0 > 2 && ~params.bool_dot
     ind_morph = 1;
     bin0 = bwmorph(bwmorph(bin0,'dilate',2),'erode',2);
     [lab0,l0] = bwlabel(bin0);
     arr0 = zeros(1,l0);
-    for i=1:l0,
+    for i=1:l0
         arr0(i) = numel(find(lab0 == i));
     end
     % ...................(8b)
-elseif params.bool_dot,
+elseif params.bool_dot
     arr0s = sort(arr0(indl0) * scale.xy);
     if (l0 ~= 2 || (l0 == 2 && (arr0s(end-1)/arr0s(end))<.55)),
         ind_morph = 1;
@@ -707,7 +707,7 @@ l0 = numel(find(arr0 * scale.xy > .4));
 % more processing is required. The hope is to obtain more than one blobs
 % larger than 0.4mm^2 (9b), with the largest blob isolated and measured. 
 
-if (l0),
+if (l0)
     ind_head = 0;
     max01 = find(arr0 == max(arr0));
     max_arr = arr0(max01(1)) * scale.xy;
@@ -734,7 +734,7 @@ if (l0),
     % solution to this is to perform an 'open' (10a) operation on the blob, 
     % and identify the blobs with area exceeding 0.4 mm^2 (10b).
     
-    if( max_arr > arr_lim ) && ( sum(arr0 * scale.xy > 1) == 1 ) && params.bool_nfly,
+    if( max_arr > arr_lim ) && ( sum(arr0 * scale.xy > 1) == 1 ) && params.bool_nfly
 
         % ...................(10a)
         bin01 = bwmorph(bin0,'open');
@@ -764,7 +764,7 @@ if (l0),
         max01 = find(arr0 == max(arr0));
         max_arr = arr0(max01(1)) * scale.xy;
         f01 = chamber(ic).ind_border(lab0 == max01(1));
-        if (max_arr > arr_lim) && (sum(arr0 * scale.xy > 1) == 1),
+        if (max_arr > arr_lim) && (sum(arr0 * scale.xy > 1) == 1)
             ind_head = 1;
             fly_ind.r = uint16( ... 
                 min(chamber(ic).y_arr(f01)/scale.y) - params.cs + 1 : ... 
@@ -810,7 +810,7 @@ if (l0),
             l01 = numel(find(arr0 * scale.xy > .4));
 
             % ...................(12b)
-            if (l01 == 1),
+            if (l01 == 1)
                 [lab01,STATS01] = mask2ellipses(lab0_,img(fly_ind.r,fly_ind.c).^2,params.bool_dot);
                 nume = numel(STATS01);
                 l0 = 0;
