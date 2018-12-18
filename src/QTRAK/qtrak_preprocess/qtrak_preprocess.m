@@ -337,10 +337,6 @@ global nframes_mean mean_image std_image frmindx;
         %%
         % Begin frame capture for feature identification
 
-        if ispc
-            clear('mexDDGrab.mexw32'); % Clear previous instance of video grabber
-        end
-
         try            
             mmread( Files.strInFName, intStartFrm-1:intStartFrm-1, ...
                 [], false, true, 'ProcessFrameCapWin', false );

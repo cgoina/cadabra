@@ -245,11 +245,7 @@ if ~(exist(featFile, 'file')==2)
     mearoidat = [inputFilePath inputFileName '_mearoi.mat'];
     load(mearoidat);
     
-    if ispc
-        mexDDGrab( 'setChambers', mea, roiCorners, params.bool_dot );
-    else
-        FFGrab( 'setChambers', mea, roiCorners, params.bool_dot );
-    end
+    FFGrab( 'setChambers', mea, roiCorners, params.bool_dot );
     
     try
         mmread(inputMovieFile, intStartFrm : intStartFrm+intNFrms, ...
