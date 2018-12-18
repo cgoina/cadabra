@@ -44,6 +44,8 @@ persistent h1;
             h1 = waitbar(0, 'Computing background image', 'Name', 'WaitForBackground');
             mean_image = zeros(height,width,3);
             std_image = zeros(height,width,3);
+        elseif (frmindx >= nframes_mean)
+            close(h1)
         elseif (frmindx >= 1)
             mean_image = mean_image + data;
             std_image = std_image + data.^2;

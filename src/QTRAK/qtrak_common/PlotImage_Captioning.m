@@ -459,7 +459,7 @@ global currentFrame_O1 currentFrame_O2;
                 object{ic}.mvdirdiff = 180/pi*(mv_dirdiff);
                 
                 % ...................(6b)                
-                if object_1{ic}.to2mvdirdiff>180, 
+                if object_1{ic}.to2mvdirdiff>180
                     object_1{ic}.to2mvdirdiff = object_1{ic}.to2mvdirdiff - 360; 
                 end
                 if object_1{ic}.to2mvdirdiff<(-180), 
@@ -899,12 +899,12 @@ if (l0)
         % to be a fly (probably flew away or hidden) -
         % take the last known information of this object
         area2 = numel(f022) * scale.xy;
-        if (area2 < .5) && ~params.bool_dot,
-            if isempty(obj_2),
+        if (area2 < .5) && ~params.bool_dot
+            if isempty(obj_2)
                 obj_2.xc = 0; 
                 obj_2.yc = 0; 
                 obj_2.head = -99;
-            end;
+            end
             obj2 = obj_2;
             ind_twoobj = 0;
         else
@@ -934,7 +934,7 @@ if (l0)
     [obj1,obj_1] = fly_bodymeas(obj1,obj_1,img,f011,fly_ind1,chamber(ic),params,scale,arr_lim,ind_head);
     
     params.dist2 = 0;
-    if ind_twoobj && params.bool_nfly,
+    if ind_twoobj && params.bool_nfly
         [obj2,obj_2] = fly_bodymeas(obj2,obj_2,img,f022,fly_ind2,chamber(ic),params,scale,arr_lim,ind_head);
         params.dist2 = sqrt((obj2.xc - obj1.xc).^2 + (obj2.yc - obj1.yc).^2);
     end
@@ -947,17 +947,17 @@ if (l0)
     %% B.9 Head / Tail and Wing Determination
     
     %%% Fly 1
-    if ind_twoobj || (~ind_twoobj && ~ind_swap),
+    if ind_twoobj || (~ind_twoobj && ~ind_swap)
         obj1 = fly_headtailwings(obj1,obj_1,img2,f01,chamber(ic),params,ind_head,0);
     end
 
     %%% Fly 2
-    if (ind_twoobj || (~ind_twoobj && ind_swap)) && params.bool_nfly,
+    if (ind_twoobj || (~ind_twoobj && ind_swap)) && params.bool_nfly
         obj2 = fly_headtailwings(obj2,obj_2,img2,f02,chamber(ic),params,ind_head,1);
     end
     
-    if ~ind_twoobj,
-        if ~ind_swap,
+    if ~ind_twoobj
+        if ~ind_swap
             obj2 = obj_2;            
         else
             obj1 = obj_1;
