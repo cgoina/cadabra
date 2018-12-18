@@ -1,0 +1,92 @@
+default: qtrak_preprocess qtrak_cluster
+
+MW_MINGW64_LOC=/C/msys64/mingw64
+CC=${MW_MINGW64_LOC}/bin/gcc
+CPP="${MW_MINGW64_LOC}/bin/g++"
+MATLAB_ROOT=/C/Program Files/MATLAB/R2018b
+MCC=${MATLAB_ROOT}/bin/mcc.bat
+
+AVBIN_DIR=/C/Users/goinac/Work/misc/avbin-repos/avbin
+
+MEX_CFLAGS=-DMATLAB_DEFAULT_RELEASE=R2017b \
+	   -DUSE_MEX_CMD \
+	   -m64 -DMATLAB_MEX_FILE \
+	   -I"${MATLAB_ROOT}/extern/include" \
+	   -I"${MATLAB_ROOT}}/simulink/include" \
+	   -I"${MATLAB_ROOT}/extern\lib\win64\mingw64" \
+	   -fexceptions -fno-omit-frame-pointer \
+	   -O2 -fwrapv \
+	   -DNDEBUG
+
+MEX_CPPFLAGS=${MEX_CFLAGS} \
+             -std=c++11 \
+	     -I${AVBIN_DIR}/include \
+	     -I${AVBIN_DIR}/libav
+
+MEX_LIBS=-L"${MATLAB_ROOT}/extern/lib/win64/mingw64" \
+	 -llibmx -llibmex -llibmat -lm -llibmwlapack -llibmwblas \
+	 -llibMatlabDataArray -llibMatlabEngine
+
+bin:
+	mkdir -p bin
+
+%.mexw64: %.c bin
+	echo "$<" -> "$@"
+	${CC} -c ${MEX_CFLAGS} "$<" -o "bin/$(@F).omexw64"
+	${CC} -c ${MEX_CFLAGS} \
+	"${MATLAB_ROOT}/extern/version/c_mexapi_version.c" \
+	-o "bin/c_mexapi_version.omexw64"
+	${CC} \
+	-m64 -Wl,--no-undefined \
+	-shared -static -s \
+	-Wl,"${MATLAB_ROOT}/extern/lib/win64/mingw64/exportsmexfileversion.def" \
+	"bin/$(@F).omexw64" \
+	bin/c_mexapi_version.omexw64 \
+	${MEX_LIBS} \
+	-o "$@"
+
+%.mexw64: %.cpp bin
+	echo "$<" -> "$@"
+	${CPP} -c ${MEX_CPPFLAGS} "$<" -o "bin/$(@F).oomexw64"
+	${CPP} -c ${MEX_CPPFLAGS} \
+	"${MATLAB_ROOT}/extern/version/c_mexapi_version.c" \
+	-o "bin/c_mexapi_version.oomexw64"
+	${CPP} \
+	-m64 -Wl,--no-undefined \
+	-shared -static -s \
+	-Wl,"${MATLAB_ROOT}/extern/lib/win64/mingw64/exportsmexfileversion.def" \
+	"bin/$(@F).oomexw64" \
+	bin/c_mexapi_version.oomexw64 \
+	${MEX_LIBS} \
+	-L${AVBIN_DIR}/dist/win64 -llibavbin64 \
+	-o "$@"
+
+mex_compile: src/QTRAK/qtrak_common/fhistc.mexw64 \
+             src/QTRAK/qtrak_common/FFGrab.mexw64
+
+qtrak_preprocess: bin src/QTRAK/qtrak_preprocess/qtrak_preprocess.m \
+		  mex_compile
+	"${MCC}" \
+	-v \
+        -m qtrak_preprocess \
+	-d bin \
+	-I src/QTRAK/qtrak_preprocess \
+	-I src/QTRAK/qtrak_common \
+	-a src/QTRAK/qtrak_common/FFGrab.mexw64 \
+	-a src/QTRAK/qtrak_common/fhistc.mexw64 \
+	-a src/QTRAK/qtrak_common/ProcessFrameMeanWin.m \
+	-a src/QTRAK/qtrak_common/ProcessFrameCapWin.m
+
+
+qtrak_cluster: bin src/QTRAK/qtrak_cluster/qtrak_cluster.m \
+	       mex_compile
+	"${MCC}" \
+	-v \
+        -m qtrak_cluster \
+	-d bin \
+	-I src/QTRAK/qtrak_cluster \
+	-I src/QTRAK/qtrak_common \
+	-a src/QTRAK/qtrak_common/FFGrab.mexw64 \
+	-a src/QTRAK/qtrak_common/fhistc.mexw64 \
+	-a src/QTRAK/qtrak_common/ProcessFrameMeanWin.m \
+	-a src/QTRAK/qtrak_common/ProcessFrameCapWin.m
