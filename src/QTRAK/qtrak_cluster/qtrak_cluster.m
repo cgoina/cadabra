@@ -129,149 +129,141 @@ if (exist(configFile, 'file')==2)
 else
     errordlg('A preprocessed.config is wanted! If you cannot find the file, please run qtrak_preprocess to generate it.','File Error');
     return
-    
 end
 
 
 % Check to see if a feat file already exist.  If so, skip qtrak routine.
-if ~(exist(featFile, 'file')==2)
-    
-    if ~(exist(inputMovieFile, 'file')==2)
-        errordlg('Cannot find the feature file! Rerun qtrak_cluster from movie file.','File Error');
-        return;
+if ~(exist(inputMovieFile, 'file')==2)
+    errordlg('Cannot find the feature file! Rerun qtrak_cluster from movie file.','File Error');
+    return;
+end
+
+params.bool_plotcount = 0;
+ObjBuf = cell(params.nchambers,1);
+
+FeatureFileName = cell(params.nchambers,1);
+ErrorFileName = cell(params.nchambers,1);
+Files.FeatureFID = cell(params.nchambers,1);
+Files.ErrorFID = cell(params.nchambers,1);
+
+for i=1:params.nchambers
+
+    FeatureFileName{i} = [inputFilePath inputFileName '_' num2str(i) '.feat'];
+    ErrorFileName{i} = [inputFilePath inputFileName '_' num2str(i) '.err'];
+
+    Files.FeatureFID{i} = fopen(FeatureFileName{i},'w');
+    if Files.FeatureFID{i} == -1
+        disp('ERROR: The Following Feature file could not be Created');
+        disp(['         NAME: ', FeatureFileName{i}]);
+        disp(['         PATH: ', Files.strInVideoPath slashstr]);
+        return
     end
-    
-    params.bool_plotcount = 0;
-    ObjBuf = cell(params.nchambers,1);
-    % Files.strInVideoFName = Files.strInVideoFName(1:end-4);
-    % Files.strInFName = [Files.strInVideoPath slashstr Files.strInVideoFName '.' Files.strVideoFExt];
-    
-    FeatureFileName = cell(params.nchambers,1);
-    ErrorFileName = cell(params.nchambers,1);
-    Files.FeatureFID = cell(params.nchambers,1);
-    Files.ErrorFID = cell(params.nchambers,1);
-    
-    for i=1:params.nchambers
-        
-        FeatureFileName{i} = [inputFilePath inputFileName '_' num2str(i) '.feat'];
-        ErrorFileName{i} = [inputFilePath inputFileName '_' num2str(i) '.err'];
-        
-        Files.FeatureFID{i} = fopen(FeatureFileName{i},'w');
-        if Files.FeatureFID{i} == -1,
-            disp('ERROR: The Following Feature file could not be Created');
-            disp(['         NAME: ', FeatureFileName{i}]);
-            disp(['         PATH: ', Files.strInVideoPath slashstr]);
-            return
-        end
-        
-        fprintf( Files.FeatureFID{i}, '%14s', ...
-            'frame'       ,'time [s]'    ,'fly1_dir'    ,'fly2_dir'    , ...
-            'fly1_mvdir'  ,'fly2_mvdir'  ,'fly1_ori'    ,'fly2_ori'    , ...
-            'dir_diff'    ,'mvdir_diff'  ,'1to2_mvdird' ,'2to1_mvdird' , ...
-            'fly1_mean'   ,'fly2_mean'   ,'e_len_1 [mm]','e_len_2 [mm]', ...
-            'e_ar1 [mm2]' ,'e_ar2 [mm2]' ,'vel1 [mm/s]' ,'vel2 [mm/s]' , ...
-            'ac1 [mm/s^2]','ac2 [mm/s^2]','c1dist [mm]' ,'c2dist [mm]' , ...
-            'dist [mm]'   ,'h1-t2 [mm]'  ,'h2-t1 [mm]'  ,'h-h [mm]'    , ...
-            't-t [mm]'    ,'ddist [mm]'  ,'d h-h [mm]'  ,'d t-t [mm]'  , ...
-            'Area1 [mm2]' ,'Area2 [mm2]' ,'Length1 [mm]','Length2 [mm]', ...
-            'fly_closing' ,'fly_facing'  ,'fly_acting'  ,'fly_conn'    , ...
-            'fly1_wingr'  ,'fly1_wingl'  ,'fly1_wing'   ,'fly2_wingr'  , ...
-            'fly2_wingl'  ,'fly2_wing'   ,'chpos1 [mm]' ,'chpos2 [mm]' , ...
-            'fly1 x [mm]' ,'fly1 y [mm]' ,'fly2 x [mm]' ,'fly2 y [mm]' , ...
-            'phi1_r'      ,'phi1_l'      ,'fly1_r [mm]' ,'fly1_l [mm]' , ...
-            'phi2_r'      ,'phi2_l'      ,'fly2_r [mm]' ,'fly2_l [mm]' );
-        fprintf(Files.FeatureFID{i},'\n');
-        
-        Files.ErrorFID{i} = fopen(ErrorFileName{i},'a');
-        if Files.ErrorFID{i} == -1
-            disp('ERROR: The Following Error file could not be Created');
-            disp(['         NAME: ', ErrorFileName{i}]);
-            disp(['         PATH: ', Files.strInVideoPath slashstr]);
-            return
-        end
-        
-        % inintialize some global varibles
-        ObjBuf{i} = struct;
-        object{i}.dirdiff = 0;
-        object{i}.mvdirdiff = 0;
-        object{i}.distc = 0;
-        object{i}.disth = 0;
-        object{i}.distt = 0;
-        object{i}.der_distc = 0;
-        object{i}.der_disth = 0;
-        object{i}.der_distt = 0;
-        object_1{i}.disthto2 = 0;
-        object_1{i}.pos_x = zeros(1,intNFrms);
-        object_1{i}.pos_y = zeros(1,intNFrms);
-        object_1{i}.headdir = zeros(1,intNFrms);
-        object_1{i}.movedir = 0;
-        object_1{i}.to2mvdirdiff = 0;
-        object_1{i}.orient = 0;
-        object_1{i}.mea = 0;
-        object_1{i}.vel = 0;
-        object_1{i}.acc = 0;
-        object_1{i}.area = 0;
-        object_1{i}.Area = 0;
-        object_1{i}.length = 0;
-        object_1{i}.r = 0;
-        object_2{i} = object_1{i};
-        
-        currentFrame_O1{i}.xc = zeros(1,intNFrms);
-        currentFrame_O1{i}.yc = zeros(1,intNFrms);
-        currentFrame_O1{i}.head = zeros(1,intNFrms);
-        currentFrame_O1{i}.xh = zeros(1,intNFrms);
-        currentFrame_O1{i}.xt = zeros(1,intNFrms);
-        currentFrame_O1{i}.yh = zeros(1,intNFrms);
-        currentFrame_O1{i}.yt = zeros(1,intNFrms);
-        currentFrame_O1{i}.phir = zeros(1,intNFrms);
-        currentFrame_O1{i}.phil = zeros(1,intNFrms);
-        currentFrame_O1{i}.r = zeros(1,intNFrms);
-        currentFrame_O1{i}.l = zeros(1,intNFrms);
-        
-        currentFrame_O2{i}.xc = zeros(1,intNFrms);
-        currentFrame_O2{i}.yc = zeros(1,intNFrms);
-        currentFrame_O2{i}.head = zeros(1,intNFrms);
-        currentFrame_O2{i}.xh = zeros(1,intNFrms);
-        currentFrame_O2{i}.xt = zeros(1,intNFrms);
-        currentFrame_O2{i}.yh = zeros(1,intNFrms);
-        currentFrame_O2{i}.yt = zeros(1,intNFrms);
-        currentFrame_O2{i}.phir = zeros(1,intNFrms);
-        currentFrame_O2{i}.phil = zeros(1,intNFrms);
-        currentFrame_O2{i}.r = zeros(1,intNFrms);
-        currentFrame_O2{i}.l = zeros(1,intNFrms);
-        
+
+    fprintf( Files.FeatureFID{i}, '%14s', ...
+        'frame'       ,'time [s]'    ,'fly1_dir'    ,'fly2_dir'    , ...
+        'fly1_mvdir'  ,'fly2_mvdir'  ,'fly1_ori'    ,'fly2_ori'    , ...
+        'dir_diff'    ,'mvdir_diff'  ,'1to2_mvdird' ,'2to1_mvdird' , ...
+        'fly1_mean'   ,'fly2_mean'   ,'e_len_1 [mm]','e_len_2 [mm]', ...
+        'e_ar1 [mm2]' ,'e_ar2 [mm2]' ,'vel1 [mm/s]' ,'vel2 [mm/s]' , ...
+        'ac1 [mm/s^2]','ac2 [mm/s^2]','c1dist [mm]' ,'c2dist [mm]' , ...
+        'dist [mm]'   ,'h1-t2 [mm]'  ,'h2-t1 [mm]'  ,'h-h [mm]'    , ...
+        't-t [mm]'    ,'ddist [mm]'  ,'d h-h [mm]'  ,'d t-t [mm]'  , ...
+        'Area1 [mm2]' ,'Area2 [mm2]' ,'Length1 [mm]','Length2 [mm]', ...
+        'fly_closing' ,'fly_facing'  ,'fly_acting'  ,'fly_conn'    , ...
+        'fly1_wingr'  ,'fly1_wingl'  ,'fly1_wing'   ,'fly2_wingr'  , ...
+        'fly2_wingl'  ,'fly2_wing'   ,'chpos1 [mm]' ,'chpos2 [mm]' , ...
+        'fly1 x [mm]' ,'fly1 y [mm]' ,'fly2 x [mm]' ,'fly2 y [mm]' , ...
+        'phi1_r'      ,'phi1_l'      ,'fly1_r [mm]' ,'fly1_l [mm]' , ...
+        'phi2_r'      ,'phi2_l'      ,'fly2_r [mm]' ,'fly2_l [mm]' );
+    fprintf(Files.FeatureFID{i},'\n');
+
+    Files.ErrorFID{i} = fopen(ErrorFileName{i},'a');
+    if Files.ErrorFID{i} == -1
+        disp('ERROR: The Following Error file could not be Created');
+        disp(['         NAME: ', ErrorFileName{i}]);
+        disp(['         PATH: ', Files.strInVideoPath slashstr]);
+        return
     end
-    
-    mearoidat = [inputFilePath inputFileName '_mearoi.mat'];
-    load(mearoidat);
-    
-    FFGrab( 'setChambers', mea, roiCorners, params.bool_dot );
-    
-    try
-        mmread(inputMovieFile, intStartFrm : intStartFrm+intNFrms, ...
-            [], false, true, 'ProcessFrameCapWin', false );
-    catch err
-        if ~strcmp(err.message(end-14:end),'STOP PROCESSING')
-            rethrow(err);
-        end
+
+    % inintialize some global varibles
+    ObjBuf{i} = struct;
+    object{i}.dirdiff = 0;
+    object{i}.mvdirdiff = 0;
+    object{i}.distc = 0;
+    object{i}.disth = 0;
+    object{i}.distt = 0;
+    object{i}.der_distc = 0;
+    object{i}.der_disth = 0;
+    object{i}.der_distt = 0;
+    object_1{i}.disthto2 = 0;
+    object_1{i}.pos_x = zeros(1,intNFrms);
+    object_1{i}.pos_y = zeros(1,intNFrms);
+    object_1{i}.headdir = zeros(1,intNFrms);
+    object_1{i}.movedir = 0;
+    object_1{i}.to2mvdirdiff = 0;
+    object_1{i}.orient = 0;
+    object_1{i}.mea = 0;
+    object_1{i}.vel = 0;
+    object_1{i}.acc = 0;
+    object_1{i}.area = 0;
+    object_1{i}.Area = 0;
+    object_1{i}.length = 0;
+    object_1{i}.r = 0;
+    object_2{i} = object_1{i};
+
+    currentFrame_O1{i}.xc = zeros(1,intNFrms);
+    currentFrame_O1{i}.yc = zeros(1,intNFrms);
+    currentFrame_O1{i}.head = zeros(1,intNFrms);
+    currentFrame_O1{i}.xh = zeros(1,intNFrms);
+    currentFrame_O1{i}.xt = zeros(1,intNFrms);
+    currentFrame_O1{i}.yh = zeros(1,intNFrms);
+    currentFrame_O1{i}.yt = zeros(1,intNFrms);
+    currentFrame_O1{i}.phir = zeros(1,intNFrms);
+    currentFrame_O1{i}.phil = zeros(1,intNFrms);
+    currentFrame_O1{i}.r = zeros(1,intNFrms);
+    currentFrame_O1{i}.l = zeros(1,intNFrms);
+
+    currentFrame_O2{i}.xc = zeros(1,intNFrms);
+    currentFrame_O2{i}.yc = zeros(1,intNFrms);
+    currentFrame_O2{i}.head = zeros(1,intNFrms);
+    currentFrame_O2{i}.xh = zeros(1,intNFrms);
+    currentFrame_O2{i}.xt = zeros(1,intNFrms);
+    currentFrame_O2{i}.yh = zeros(1,intNFrms);
+    currentFrame_O2{i}.yt = zeros(1,intNFrms);
+    currentFrame_O2{i}.phir = zeros(1,intNFrms);
+    currentFrame_O2{i}.phil = zeros(1,intNFrms);
+    currentFrame_O2{i}.r = zeros(1,intNFrms);
+    currentFrame_O2{i}.l = zeros(1,intNFrms);
+
+end
+
+mearoidat = [inputFilePath inputFileName '_mearoi.mat'];
+load(mearoidat);
+
+FFGrab('setChambers', mea, roiCorners, params.bool_dot);
+
+try
+    mmread(inputMovieFile, intStartFrm : intStartFrm+intNFrms, ...
+        [], false, true, 'ProcessFrameCapWin', false );
+catch err
+    if ~strcmp(err.message(end-14:end),'STOP PROCESSING')
+        rethrow(err);
     end
-    
-    %Save traking infomration
-    trackinginfoFileName = [Files.strInVideoPath '/' Files.strInVideoFName '_trackinginfo.mat'];
-    save(trackinginfoFileName, 'currentFrame_O1', 'currentFrame_O2', 'object_1', 'object_2');
-    
-    for i=1:params.nchambers
-        fclose(Files.FeatureFID{i});
-        fclose(Files.ErrorFID{i});
-    end
-    
+end
+
+% Save traking infomration
+trackinginfoFileName = [Files.strInVideoPath '/' Files.strInVideoFName '_trackinginfo.mat'];
+save(trackinginfoFileName, 'currentFrame_O1', 'currentFrame_O2', 'object_1', 'object_2');
+
+for i=1:params.nchambers
+    fclose(Files.FeatureFID{i});
+    fclose(Files.ErrorFID{i});
 end
 
 % embedded analysis
 
 params.analysis.nchambers = params.nchambers;
 params.analysis.courtship = params.bool_court;
-
 
 if params.bool_nfly
     params.analysis.oneobj = 0;

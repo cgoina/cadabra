@@ -373,7 +373,6 @@ global ind1_count ind2_count;
             'proxi_ind','proxi_vel','proxi_mvdirdiff','nmov','dt','nfrms','ifile');
     else
         % READ IF DATA IS PRESENT
-        %waitbar(igen/ngens,h1,gen_ident{igen});
         fid2 = fopen([path  addname name  '_aggress_court.mat'],'r');
         load([path  addname name  '_aggress_court.mat']);
         load([path  addname name  '_analysis.mat']);
