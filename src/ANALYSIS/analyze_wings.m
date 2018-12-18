@@ -560,28 +560,6 @@ if ~params.oneobj && params.plots.stat.wingextflydist,
     titl = 'Difference of Norm. Distance - Post/Prior Wing Extension';
     mtit(titl,'FontSize',params.axisfontsize,'yoff',.0); set(FID,'Name',titl);
     if params.pdf, print(['-f' num2str(FID)],'-dpsc2',appnd,params.PSFileN); end
-
-    % % PLOT DISTANCE AT WING EXTENSION OVER TIME WHEN IT OCCURRED 
-    % for ilrb=1:2,
-    %     lrb = lrb_vec(ilrb);
-    %     figure(FID); clf;
-    %     set(FID,'PaperOrientation','landscape','PaperPositionMode','manual','PaperPosition',[0 0 11 8.5]);
-    %     for igen=1:ngens,
-    %         subplot('Position',[mod(igen-1,params.k(2))/(params.k(2)*1.1)+.05, 0.9-fix((igen-1)/params.k(2))/(params.k(1)*1.1)-1/(params.k(1)*1.5), ...
-    %                             1/(params.k(2)*1.5), 1/(params.k(1)*1.5)]); hold on;
-    %         title(cell2mat(gen_ident(igen)));
-    %         plot(dis_vec{ilrb,igen},dur_vec{ilrb,igen},'.','MarkerSize',6,'Color',[0 0 .8]);
-    %         axis([0 50 0 5]); grid on;
-    %         text(25,4.5,['n=' num2str(numel(dur_vec{ilrb,igen}))]);
-    %         if ~mod(igen-1,params.k(1)), xlabel('fly distance [mm]'); end
-    %         if ~mod(igen-1,params.k(2)), ylabel('duration [s]'); end
-    %     end
-    %     titl = 'Fly Distance at ';
-    %     if strcmp(lrb,'r'), titl = [titl 'RIGHT ']; else titl = [titl 'LEFT ']; end
-    %     titl = [titl 'Wing Ext. <-> Wing Ext. Duration'];
-    %     set(FID,'Name',titl); mtit(titl,'FontSize',14','yoff',.04);
-    %     if params.pdf, print(['-f' num2str(FID)],'-dpsc2',appnd,params.PSFileN); end
-    % end
 end
 
 % FLY ORIENTATION POLAR PLOTS FOR WING EXTENSION PHASES
