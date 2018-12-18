@@ -535,10 +535,8 @@ x_0r = x_0r(1:count,:);
 
 % Load the examples data base
 bool_kNN = 1;
-path2 = '';
-DATA_FILE = [path2 'tta1.mat'];
 
-load(DATA_FILE);
+load('tta1.mat');
 
 % Chose 10 features
 x_1 = [x_1(:,1:6) x_1(:,8:11)];
@@ -550,7 +548,7 @@ NN_neg = size(x_0,1);
 NN_feat = size(x_1,2);
 
 % Load indices of negative examples
-load([path2 'ttr1.mat'], 'rrn');
+load('ttr1.mat', 'rrn');
 NN_neg = floor(NN_neg / 7);
 x_0 = x_0(rrn(1:NN_neg),:);
 
@@ -567,7 +565,7 @@ groups = [ones(NN_pos,1) ; zeros(NN_neg,1)];
 
 if (bool_kNN),
     % Sphere Data
-    load([path2 'ttC.mat']);
+    load('ttC.mat');
     [U,S,V] = svd(C);
     x_1 = x_1 * U * inv(sqrt(S));
     x_0 = x_0 * U * inv(sqrt(S));

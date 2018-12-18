@@ -46,21 +46,21 @@ bool_sumobj = 1;
 ngens = max(genotypes); %k = factor(ngens);
 utest = utestpairs(gen_ident);
 
-if params.plots.stat.leftwing && numel(find(params.plots.stat.wing_vec == 1)),
+if params.plots.stat.leftwing && numel(find(params.plots.stat.wing_vec == 1))
     titl = 'Left Wing Extensions'; ylab = 'left wing extended';
     FID = plot_loser_winner_stat(wings.ext.l,FID,maxy,gen_ident,params,ylab,dts,titl,bool_sumobj,lunges,utest);
 end
-if params.plots.stat.rightwing && numel(find(params.plots.stat.wing_vec == 1)),
+if params.plots.stat.rightwing && numel(find(params.plots.stat.wing_vec == 1))
     titl = 'Right Wing Extensions'; ylab = 'right wing extended';
     FID = plot_loser_winner_stat(wings.ext.r,FID,maxy,gen_ident,params,ylab,dts,titl,bool_sumobj,lunges,utest);
 end
-if params.plots.stat.onewing && ~params.plots.movieclips && numel(find(params.plots.stat.wing_vec == 1)),
+if params.plots.stat.onewing && ~params.plots.movieclips && numel(find(params.plots.stat.wing_vec == 1))
     titl = 'One Wing Extensions'; ylab = 'one wing extended';
     FID = plot_loser_winner_stat(wings.ext.l,FID,maxy,gen_ident,params,ylab,dts,titl,bool_sumobj,lunges,utest,wings.ext.r);
 end
 
 % RELATIVE FLY ORIENTATION IN CASE OF WING-EXTENSION
-if params.plots.heatmaps.wingrel && min(params.plots.heatmaps.wingrel_vec) < 4,
+if params.plots.heatmaps.wingrel && min(params.plots.heatmaps.wingrel_vec) < 4
     ngens = length(lunges);
     extfli = 'ext'; % wing extensions (ext) or wing flicks (fli)
     maxx = 10; % chamber.width, range of distances of interest
@@ -79,9 +79,9 @@ if params.plots.heatmaps.wingrel && min(params.plots.heatmaps.wingrel_vec) < 4,
     xtick_lab = cell(1,length(xaxis)); for i=1:length(xaxis), xtick_lab{i} = num2str(-maxx+(i-1)*5); end
     rotdir1 = zeros(numel(shift_vec),numel(lrb_vec),ngens,2); rotdir2 = rotdir1;
     imgr = cell(ngens,numel(shift_vec)); imgl = imgr;
-    for ilrb=1:2, % both left and right wing
+    for ilrb=1:2 % both left and right wing
         lrb = lrb_vec(ilrb);
-        for ishift=2:2, % period during wing extension
+        for ishift=2:2 % period during wing extension
             shift = shift_vec(ishift);
             % EXTRACT RELATIV ORIENTATION AND POSITION OF ONE FLY TOWARDS 
             % THE OTHER FLY, WHILE THE OTHER FLY IS EXTENDING A WING
@@ -97,9 +97,9 @@ if params.plots.heatmaps.wingrel && min(params.plots.heatmaps.wingrel_vec) < 4,
             ngens = max(genotypes);
             o1 = cell(1,ngens); o2 = o1;
             fid = fopen([fn '.mat'],'r');
-            if (fid < 0) || params.analyze_new,
+            if (fid < 0) || params.analyze_new
                 h1 = waitbar(0,'Analyzing Data');
-                for igen=1:ngens,
+                for igen=1:ngens
                     waitbar(igen/ngens,h1,gen_ident{igen});
                     dt = sum(dts{igen}.*nframes{igen})/sum(nframes{igen});
                     [ob1,ob2] = extract_wing_orient(igen,wings,extfli,lrb,round(add/dt),shift,phi0,genotypes,sorted_names,copu);
@@ -146,14 +146,14 @@ if params.plots.heatmaps.wingrel && min(params.plots.heatmaps.wingrel_vec) < 4,
     if numel(find(params.plots.heatmaps.wingrel_vec == 1)),
         % PLOT HEATMAPS OF RELATIVE FLY POSTION WHILE EXTENDING A WING
         ngens = max(genotypes);
-        for ilrb=1:2,
+        for ilrb=1:2
             lrb = lrb_vec(ilrb);
-            for ishift=2:2,
+            for ishift=2:2
                 shift = shift_vec(ishift);
                 if ~FID, FID = 1; appnd = []; else FID = FID + 1; appnd = '-append'; end
                 figure(FID); clf;
                 set(FID,'PaperOrientation','landscape','PaperPositionMode','manual','PaperPosition',[0 0 11 8.5]);
-                for igen=1:ngens,
+                for igen=1:ngens
                     h = subplot('Position',[mod(igen-1,params.k(2))/(params.k(2)*1.1)+.05, 0.9-fix((igen-1)/params.k(2))/(params.k(1)*1.1)-1/(params.k(1)*1.5), ...
                         1/(params.k(2)*1.5), 1/(params.k(1)*1.5)]); hold on;
                     xlim([minx maxx]); ylim([miny maxy]); title(cell2mat(gen_ident(igen)),'FontSize',params.axisfontsize); axis on;
@@ -174,14 +174,14 @@ if params.plots.heatmaps.wingrel && min(params.plots.heatmaps.wingrel_vec) < 4,
                 pos = get(gca,'Position');
                 ch = colorbar('location','EastOutside'); set(get(ch,'YLabel'),'String','occurence [-]');
                 set(ch,'Position',[0.93 pos(2) 0.01 pos(4)]);
-                if params.courtship,
+                if params.courtship
                     titl = 'Female Pos. ';
                 else
                     titl = 'Fly Pos. ';
                 end
-                if shift<0,
+                if shift<0
                     titl = [titl 'BEFORE'];
-                elseif shift>0,
+                elseif shift>0
                     titl = [titl 'AFTER'];
                 else
                     titl = [titl 'WHILE'];
@@ -198,7 +198,7 @@ if params.plots.heatmaps.wingrel && min(params.plots.heatmaps.wingrel_vec) < 4,
                 titl = [titl ', v_{para} > ' num2str(min_vparal,'%3.1f') 'mm/s'];
                 set(FID,'Name',titl); mtit(titl,'FontSize',12,'yoff',.04);
 
-                if params.pdf,
+                if params.pdf
                     %             if (ilrb == 1) && (ishift == 1),
                     %                 print('-f130','-dpsc2',params.PSFileN);
                     %             else
@@ -209,16 +209,16 @@ if params.plots.heatmaps.wingrel && min(params.plots.heatmaps.wingrel_vec) < 4,
         end
     end
    
-    if numel(find(params.plots.heatmaps.wingrel_vec == 2)),
+    if numel(find(params.plots.heatmaps.wingrel_vec == 2))
         % PLOT HEATMAPS OF RELATIVE FLY POSTION WHILE EXTENDING A WING
         % DIFFERENCE BETWEEN LEFT AND RIGHT WING
-        for ishift=2:2,
+        for ishift=2:2
             shift = shift_vec(ishift);
             if ~FID, FID = 1; appnd = []; else FID = FID + 1; appnd = '-append'; end
             figure(FID); clf;
             col = jet(64); for j=1:2, col(ceil(length(col)/2)+j-1,:) = [0 0 0]; end
             set(FID,'PaperOrientation','landscape','PaperPositionMode','manual','PaperPosition',[0 0 11 8.5]);
-            for igen=1:ngens,
+            for igen=1:ngens
                 h = subplot('Position',[mod(igen-1,params.k(2))/(params.k(2)*1.1)+.05, 0.9-fix((igen-1)/params.k(2))/(params.k(1)*1.1)-1/(params.k(1)*1.5), ...
                     1/(params.k(2)*1.5), 1/(params.k(1)*1.5)]); hold on;
                 xlim([minx maxx]); ylim([miny maxy]); title(cell2mat(gen_ident(igen)),'FontSize',params.axisfontsize); axis on;
@@ -237,9 +237,9 @@ if params.plots.heatmaps.wingrel && min(params.plots.heatmaps.wingrel_vec) < 4,
             ch = colorbar('location','EastOutside'); set(get(ch,'YLabel'),'String','occurence [-]');
             set(ch,'Position',[0.93 pos(2) 0.01 pos(4)]);
             if params.courtship, titl = 'Female Pos. '; else titl = 'Fly Pos. '; end
-            if shift<0,
+            if shift<0
                 titl = [titl 'BEFORE'];
-            elseif shift>0,
+            elseif shift>0
                 titl = [titl 'AFTER'];
             else
                 titl = [titl 'WHILE'];
@@ -255,7 +255,7 @@ if params.plots.heatmaps.wingrel && min(params.plots.heatmaps.wingrel_vec) < 4,
         end
     end
 
-    if numel(find(params.plots.heatmaps.wingrel_vec == 3)),
+    if numel(find(params.plots.heatmaps.wingrel_vec == 3))
         % PLOT CIRCLING DIRECTION DURING WING EXTENSION PHASES
         dw = 0.1667; sh = 2*dw;
         data = rotdir1 + rotdir2;
@@ -263,9 +263,9 @@ if params.plots.heatmaps.wingrel && min(params.plots.heatmaps.wingrel_vec) < 4,
         if ~FID, FID = 1; appnd = []; else FID = FID + 1; appnd = '-append'; end
         figure(FID); clf;
         set(FID,'PaperOrientation','landscape','PaperPositionMode','manual','PaperPosition',[0 0 11 8.5]);
-        for ilrb=1:2,
+        for ilrb=1:2
             dp = sign(ilrb-1.5)*dw;
-            for igen=1:ngens,
+            for igen=1:ngens
                 patch([igen+dp-sh,igen-sh,igen-sh,igen+dp-sh,igen+dp-sh],...
                     [0,0,data(ishift,ilrb,igen,1),data(ishift,ilrb,igen,1),0],params.flycol.win);
                 patch([igen+dp-sh,igen-sh,igen-sh,igen+dp-sh,igen+dp-sh],...
@@ -291,7 +291,7 @@ end
 
 % HEATMAP TIME SERIES OF RELATIVE FLY ORIENTATION DURING WING-EXTENSION
 bool_test = 0;
-if bool_test,
+if bool_test
     extfli = 'ext';
     maxx = 10; % chamber.width, Range of distances of interest
     max_int = 200; % max. frequency in histogram
@@ -302,7 +302,7 @@ if bool_test,
     tstep = 5; % divide an event into tstep time steps
     lrb_vec = ['l' 'r'];
 
-    for ilrb=1:2,
+    for ilrb=1:2
         lrb = lrb_vec(ilrb);
         fn = [path addname num2str(ngens) '_gens_wing_' extfli '_' lrb '_add_' ...
             num2str(add) '_minmaxphi_' num2str(phi0.min) '_' num2str(phi0.max) '_frames'];
@@ -331,11 +331,11 @@ if bool_test,
         xv = minx:dv:maxx; yv = miny:dv:maxy;
         ngens = max(genotypes); %k = factor(ngens);
         img = cell(ngens,nt); phi_velo1 = cell(ngens,2); phi_velo2 = phi_velo1;
-        for igen=1:ngens,
-            if ~params.courtship || params.oneobj,
+        for igen=1:ngens
+            if ~params.courtship || params.oneobj
                 [img,phi_velo1] = analyze_wing_mov(o1,phi_velo1,img,igen,add,tstep,min_vortho,min_vparal,min_vphi,xv,yv,chamber,params.oneobj);
             end
-            if ~params.courtship || ~params.oneobj,
+            if ~params.courtship || ~params.oneobj
                 [img,phi_velo2] = analyze_wing_mov(o2,phi_velo2,img,igen,add,tstep,min_vortho,min_vparal,min_vphi,xv,yv,chamber,params.oneobj);
             end
             if strcmp(lrb,'r'), imgr = img; end
@@ -348,8 +348,8 @@ if bool_test,
     figure(FID); clf;
     set(FID,'PaperOrientation','landscape','PaperPositionMode','manual','PaperPosition',[0 0 11 8.5]);
     col = jet; %for j=1:2, col(ceil(length(col)/2)+j-1,:) = [0 0 0]; end
-    for l1=1:nt,
-        for igen=1:ngens,
+    for l1=1:nt
+        for igen=1:ngens
             dt = sum(dts{igen}.*nframes{igen})/sum(nframes{igen});
             h = subplot('Position',[mod(igen-1,params.k(2))/(params.k(2)*1.1)+.05, 0.9-fix((igen-1)/params.k(2))/(params.k(1)*1.1)-1/(params.k(1)*1.5), ...
                 1/(params.k(2)*1.5), 1/(params.k(1)*1.5)]); hold on;
@@ -374,7 +374,7 @@ if bool_test,
         titl = [titl ', v_{orth} > ' num2str(min_vortho,'%3.1f') 'mm/s'];
         titl = [titl ', v_{para} > ' num2str(min_vparal,'%3.1f') 'mm/s'];
         set(FID,'Name',titl); mtit(titl,'FontSize',14','yoff',.04);
-        if params.pdf,
+        if params.pdf
             %             if (ilrb == 1) && (l1 == 1),
             %                 print('-f130','-dpsc2',params.PSFileN);
             %             else
@@ -386,7 +386,7 @@ end
 
 
 % FLY DISTANCE OVER TIME FOR WING EXTENSION PHASES
-if ~params.oneobj && params.plots.stat.wingextflydist,
+if ~params.oneobj && params.plots.stat.wingextflydist
     extfli = 'ext';
     add = 1; %[s]; add. n frames before/after each sequence
     % phi0.min = 40; phi0.max = 60; % borders for wing angle (rel. to major body-axis)
@@ -398,13 +398,13 @@ if ~params.oneobj && params.plots.stat.wingextflydist,
 
     pred_mean = zeros(2,ngens); postd_mean = pred_mean;
     dis_vec = cell(2,ngens); dur_vec = dis_vec;
-    for ilrb=1:2,
+    for ilrb=1:2
         lrb = lrb_vec(ilrb);
         % EXTRACT RELATIV ORIENTATION AND POSITION OF ONE FLY TOWARDS
         % THE OTHER FLY, WHILE THE OTHER FLY IS EXTENDING A WING
         fn = [path addname num2str(ngens) '_gens_wing_' extfli '_' lrb '_add_' ...
             num2str(add) '_minmaxphi_' num2str(phi0.min) '_' num2str(phi0.max) '_frames'];
-        if shift<0,
+        if shift<0
             fn = [fn '_before_ob_orient'];
         elseif shift>0
             fn = [fn '_after_ob_orient'];
@@ -413,9 +413,9 @@ if ~params.oneobj && params.plots.stat.wingextflydist,
         end
         o1 = cell(1,ngens); o2 = o1;
         fid = fopen([fn '.mat'],'r');
-        if (fid < 0) || params.analyze_new,
+        if (fid < 0) || params.analyze_new
             h1 = waitbar(0,'Analyzing Data');
-            for igen=1:ngens,
+            for igen=1:ngens
                 waitbar(igen/ngens,h1,gen_ident{igen});
                 dt = sum(dts{igen}.*nframes{igen})/sum(nframes{igen});
                 [ob1,ob2] = extract_wing_orient(igen,wings,extfli,lrb,round(add/dt),shift,phi0,genotypes,sorted_names,copu);
@@ -432,9 +432,9 @@ if ~params.oneobj && params.plots.stat.wingextflydist,
         if ~FID, FID = 1; appnd = []; else FID = FID + 1; appnd = '-append'; end
         figure(FID); clf;
         set(FID,'PaperOrientation','landscape','PaperPositionMode','manual','PaperPosition',[0 0 11 8.5]);
-        for igen=1:ngens,
+        for igen=1:ngens
             dt = sum(dts{igen}.*nframes{igen})/sum(nframes{igen});
-            xt = -add:dt:add; if mod(length(xt),2), xt = [xt add+dt]; end;
+            xt = -add:dt:add; if mod(length(xt),2), xt = [xt add+dt]; end
             add1 = round(length(xt)/2);
             h = subplot('Position',[mod(igen-1,params.k(2))/(params.k(2)*1.1)+.05, 0.9-fix((igen-1)/params.k(2))/(params.k(1)*1.1)-1/(params.k(1)*1.5), ...
                 1/(params.k(2)*1.5), 1/(params.k(1)*1.5)]); hold on;
@@ -442,15 +442,15 @@ if ~params.oneobj && params.plots.stat.wingextflydist,
             dis_arr = []; dis_vec{ilrb,igen} = []; dur_vec{ilrb,igen} = [];
             mdis = zeros(1,length(xt)); sdis = mdis; rmdis = mdis; rsdis = mdis;
             % Fly 1
-            if ~params.courtship || params.oneobj,
-                for j=1:length(o1{igen}.tim),
-                    if numel(o1{igen}.tim{j}),
-                        for l=1:length(o1{igen}.tim{j}),
-                            if length(o1{igen}.dis{j}{l})>2*add1,
+            if ~params.courtship || params.oneobj
+                for j=1:length(o1{igen}.tim)
+                    if numel(o1{igen}.tim{j})
+                        for l=1:length(o1{igen}.tim{j})
+                            if length(o1{igen}.dis{j}{l})>2*add1
                                 cnt = cnt + 1;
                                 % In case of a single fly analyze with respect to arena
                                 % center
-                                if params.oneobj,
+                                if params.oneobj
                                     r = sqrt((o1{igen}.x1{j}{l}(1:length(xt))-chamber.width/2).^2 + (o1{igen}.y1{j}{l}(1:length(xt))-chamber.height/2).^2);
                                 else
                                     r = o1{igen}.dis{j}{l}(1:length(xt));
@@ -564,7 +564,7 @@ end
 
 % FLY ORIENTATION POLAR PLOTS FOR WING EXTENSION PHASES
 bool_test = 0;
-if bool_test,
+if bool_test
     extfli = 'ext';
     add = 30; %[s]; add. n frames before/after each sequence
     sh = 5;
@@ -575,11 +575,11 @@ if bool_test,
     ngens = max(genotypes);
     maxr = 5; % chamber.width, Range of distances of interest
 
-    for ilrb=1:2,
+    for ilrb=1:2
         lrb = lrb_vec(ilrb);
         fn = [path addname num2str(ngens) '_gens_wing_' extfli '_' lrb '_add_' ...
             num2str(add) '_minmaxphi_' num2str(phi0.min) '_' num2str(phi0.max) '_frames'];
-        if shift<0,
+        if shift<0
             fn = [fn '_before_ob_orient'];
         elseif shift>0
             fn = [fn '_after_ob_orient'];
@@ -588,9 +588,9 @@ if bool_test,
         end
         o1 = cell(1,ngens); o2 = o1;
         fid = fopen([fn '.mat'],'r');
-        if (fid < 0) || params.analyze_new,
+        if (fid < 0) || params.analyze_new
             h1 = waitbar(0,'Analyzing Data');
-            for igen=1:ngens,
+            for igen=1:ngens
                 waitbar(igen/ngens,h1,gen_ident{igen});
                 dt = sum(dts{igen}.*nframes{igen})/sum(nframes{igen});
                 [ob1,ob2] = extract_wing_orient(igen,wings,extfli,lrb,round(add/dt),shift,phi0,genotypes,sorted_names,copu);
@@ -606,16 +606,16 @@ if bool_test,
         if ~FID, FID = 1; appnd = []; else FID = FID + 1; appnd = '-append'; end
         figure(FID); clf;
         set(FID,'PaperOrientation','landscape','PaperPositionMode','manual','PaperPosition',[0 0 11 8.5]);
-        for igen=1:ngens,
+        for igen=1:ngens
             h1 = subplot('Position',[mod(igen-1,params.k(2))/(params.k(2)*1.1)+.05, 0.9-fix((igen-1)/params.k(2))/(params.k(1)*1.1)-1/(params.k(1)*1.5), ...
                 1/(params.k(2)*1.5), 1/(params.k(1)*1.5)]); hold on;
             dori = []; r = [];
-            if ~params.courtship || params.oneobj,
-                for j=1:length(o1{igen}.tim),
-                    if numel(o1{igen}.tim{j}),
-                        for l=1:length(o1{igen}.tim{j}),
-                            if length(o1{igen}.dis{j}{l})>2*add,
-                                if params.oneobj,
+            if ~params.courtship || params.oneobj
+                for j=1:length(o1{igen}.tim)
+                    if numel(o1{igen}.tim{j})
+                        for l=1:length(o1{igen}.tim{j})
+                            if length(o1{igen}.dis{j}{l})>2*add
+                                if params.oneobj
                                     phi = atan2(o1{igen}.y1{j}{l}(add+sh),o1{igen}.x1{j}{l}(add+sh)) * 180/pi;
                                     r = [r ; sqrt(o1{igen}.x1{j}{l}(add+sh).^2 + o1{igen}.y1{j}{l}(add+sh).^2)];
                                 else
@@ -628,16 +628,14 @@ if bool_test,
                     end
                 end
             end
-            if ~params.courtship || ~params.oneobj,
-                for j=1:length(o2{igen}.tim),
-                    if numel(o2{igen}.tim{j}),
-                        for l=1:length(o2{igen}.tim{j}),
-                            if length(o2{igen}.dis{j}{l})>2*add,
+            if ~params.courtship || ~params.oneobj
+                for j=1:length(o2{igen}.tim)
+                    if numel(o2{igen}.tim{j})
+                        for l=1:length(o2{igen}.tim{j})
+                            if length(o2{igen}.dis{j}{l})>2*add
                                 phi = atan2((o2{igen}.y2{j}{l}(add+sh)-o2{igen}.y1{j}{l}(add+sh)),(o2{igen}.x2{j}{l}(add+sh)-o2{igen}.x1{j}{l}(add+sh))) * 180/pi;
                                 r = [r ; o2{igen}.dis{j}{l}(add+sh)];
                                 dori = [dori ; phi - o2{igen}.do1{j}{l}(add+sh) + 90];
-                                %                             dori = [dori ; o2{igen}.do2{j}{l}(add+sh) - o2{igen}.do1{j}{l}(add+sh)];
-                                %                             r = [r ; o2{igen}.dis{j}{l}(add+sh)];
                             end
                         end
                     end
@@ -682,14 +680,14 @@ if (params.plots.stat.leftwing || params.plots.stat.rightwing || ...
     figure(FID); clf;
     set(FID,'PaperOrientation','landscape','PaperPositionMode','manual','PaperPosition',[0 0 11 8.5]);
     h = cell(1,ngens); maxy = 0;
-    for igen=1:ngens,
+    for igen=1:ngens
         nmov = length(wings.ext.l{igen}.obj1.number);
         h2d0 = zeros(nmov,length(th));
         ci_1.l = [0 cumsum(wings.ext.l{igen}.obj1.number)];
         ci_1.r = [0 cumsum(wings.ext.r{igen}.obj1.number)];
         ci_2.l = [0 cumsum(wings.ext.l{igen}.obj2.number)];
         ci_2.r = [0 cumsum(wings.ext.r{igen}.obj2.number)];
-        for j=1:nmov,
+        for j=1:nmov
             % COLLECT WING EXTENSION PERIODS FOR EACH MOVIE
             dt_1.l = ones(1,wings.ext.l{igen}.obj1.number(j))*dts{igen}(j);
             dt_2.l = ones(1,wings.ext.l{igen}.obj2.number(j))*dts{igen}(j);
@@ -713,12 +711,11 @@ if (params.plots.stat.leftwing || params.plots.stat.rightwing || ...
     end
     % PLOT HISTOGRAMS
     if ~params.autoscale, maxy = 100; end
-    for igen=1:ngens,
+    for igen=1:ngens
         h1 = subplot('Position',[mod(igen-1,params.k(2))/(params.k(2)*1.1)+.05, 0.9-fix((igen-1)/params.k(2))/(params.k(1)*1.1)-1/(params.k(1)*1.5), ...
             1/(params.k(2)*1.5), 1/(params.k(1)*1.5)]); hold on;
         title(cell2mat(gen_ident(igen)),'FontSize',params.axisfontsize);
         bar(th+dt1/2,h{igen},params.barwidth); colormap(params.flycol.win);
-        %     colormap([0 0 0 ; 0 0 1]);
         set(h1,'FontSize',params.axisfontsize);
         axis([mint maxt 0 maxy]); set(gca,'XTick',mint:dt1:maxt);
         set(gca,'XTick',mint:dt1:maxt); set(gca,'XTickLabel',xtick_lab);
