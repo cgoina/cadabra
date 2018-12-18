@@ -1042,7 +1042,7 @@ tempFig=figure('position',[0 0 720 217],'menubar','none','numbertitle','off','na
 centerfig(tempFig)
 axes('position',[0 0 1 1],'color',[.8 .9 .8],'yticklabel',[]...
     ,'xticklabel',[],'xlim',[0 1],'ylim',[0 1],'xcolor',[.4 .4 .4],'ycolor',[.4 .4 .4],'visible','off');
-aTemp=imread('doc\gVisionSplash.png');
+aTemp=imread('doc/gVisionSplash.png');
 image(aTemp)
 axis  off
 pause(0.1); 
