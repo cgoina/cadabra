@@ -1,8 +1,9 @@
 .DS_Store
 *.bak
 *~
-bin
-data
 *.mat
 *.mexmaci64
 *.mexw64
+bin
+data
+local
