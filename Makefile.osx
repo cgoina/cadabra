@@ -1,6 +1,4 @@
-default: qtrak_preprocess qtrak_cluster analysis
-
-AVBIN_DIR=/Users/goinac/Work/misc/avbin-repos/avbin
+default: qtrak_preprocess qtrak_cluster analysis gVision
 
 bin:
 	mkdir -p bin
@@ -13,11 +11,11 @@ src/QTRAK/qtrak_common/fhistc.mexmaci64: src/QTRAK/qtrak_common/fhistc.c
 
 src/QTRAK/qtrak_common/FFGrab.mexmaci64: src/QTRAK/qtrak_common/FFGrab.cpp
 	${MATLAB_ROOT}/bin/mex \
-	-I${AVBIN_DIR}/include \
-	-I${AVBIN_DIR}/libav \
+	-Iinclude \
+	-Iinclude/libav \
 	src/QTRAK/qtrak_common/FFGrab.cpp \
 	-outdir src/QTRAK/qtrak_common \
-	-L-I${AVBIN_DIR}/dist/macosx-x86-64 -lavbin.11 \
+	-Llibs -lavbin \
 	-v
 
 mex_compile: src/QTRAK/qtrak_common/fhistc.mexmaci64 \
@@ -58,3 +56,21 @@ analysis: bin src/ANALYSIS/analysis.m
 	-d bin \
 	-I src/ANALYSIS
 	cp src/ANALYSIS/*.mat bin
+
+gVision: bin src/gVision/gVision.m
+	 ${MATLAB_ROOT}/bin/mcc \
+	-v \
+        -m gVision \
+	-d bin \
+	-I src/gVision \
+	-I src/gVision/+plugins \
+	-I src/gVision/doc \
+	-I ${HOME}/Documents/MATLAB/SupportPackages/R2018b/toolbox/imaq/supportpackages/genericvideo/mwgenericvideoimaq.m \
+	-a ${HOME}/Documents/MATLAB/SupportPackages/R2018b/toolbox/imaq/supportpackages/genericvideo/adaptor/maci64/mwmacvideoimaq.dylib
+
+clean_mex:
+	-rm -f src/QTRAK/qtrak_common/fhistc.mexmaci64
+	-rm -f src/QTRAK/qtrak_common/FFGrab.mexmaci64
+
+clean:
+	-rm -rf bin
