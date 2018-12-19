@@ -5,6 +5,7 @@ CC=${MW_MINGW64_LOC}/bin/gcc
 CPP="${MW_MINGW64_LOC}/bin/g++"
 MATLAB_ROOT=/C/Program Files/MATLAB/R2018b
 MCC=${MATLAB_ROOT}/bin/mcc.bat
+MATLAB_SUPPORT_PACKAGES=/C/ProgramData/MATLAB/SupportPackages/R2018b/toolbox/imaq/supportpackages
 
 AVBIN_DIR=/C/Users/goinac/Work/misc/avbin-repos/avbin
 
@@ -20,8 +21,8 @@ MEX_CFLAGS=-DMATLAB_DEFAULT_RELEASE=R2017b \
 
 MEX_CPPFLAGS=${MEX_CFLAGS} \
              -std=c++11 \
-	     -I${AVBIN_DIR}/include \
-	     -I${AVBIN_DIR}/libav
+	     -Iinclude \
+	     -Iinclude/libav
 
 MEX_LIBS=-L"${MATLAB_ROOT}/extern/lib/win64/mingw64" \
 	 -llibmx -llibmex -llibmat -lm -llibmwlapack -llibmwblas \
@@ -58,7 +59,7 @@ bin:
 	"bin/$(@F).oomexw64" \
 	bin/c_mexapi_version.oomexw64 \
 	${MEX_LIBS} \
-	-L${AVBIN_DIR}/dist/win64 -llibavbin64 \
+	-Wl,libs/avbin64.dll \
 	-o "$@"
 
 mex_compile: src/QTRAK/qtrak_common/fhistc.mexw64 \
@@ -99,12 +100,19 @@ analysis: bin src/ANALYSIS/analysis.m
 	-I src/ANALYSIS
 
 gVision: bin src/gVision/gVision.m
-	 ${MATLAB_ROOT}/bin/mcc \
+	 "${MCC}" \
 	-v \
         -m gVision \
 	-d bin \
 	-I src/gVision \
 	-I src/gVision/+plugins \
 	-I src/gVision/doc \
-	-I ${HOME}/Documents/MATLAB/SupportPackages/R2018b/toolbox/imaq/supportpackages/genericvideo/mwgenericvideoimaq.m \
-	-a ${HOME}/Documents/MATLAB/SupportPackages/R2018b/toolbox/imaq/supportpackages/genericvideo/adaptor/maci64/mwmacvideoimaq.dylib
+	-I ${MATLAB_SUPPORT_PACKAGES}/genericvideo/mwgenericvideoimaq.m \
+	-a ${MATLAB_SUPPORT_PACKAGES}/genericvideo/adaptor/win64/mwwinvideoimaq.dll
+
+clean_mex:
+	-rm -f src/QTRAK/qtrak_common/fhistc.mexw64
+	-rm -f src/QTRAK/qtrak_common/FFGrab.mexw64
+
+clean:
+	-rm -rf bin

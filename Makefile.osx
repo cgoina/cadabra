@@ -1,5 +1,7 @@
 default: qtrak_preprocess qtrak_cluster analysis gVision
 
+MATLAB_SUPPORT_PACKAGES=${HOME}/Documents/MATLAB/SupportPackages/R2018b/toolbox/imaq/supportpackages
+
 bin:
 	mkdir -p bin
 
@@ -60,13 +62,13 @@ analysis: bin src/ANALYSIS/analysis.m
 gVision: bin src/gVision/gVision.m
 	 ${MATLAB_ROOT}/bin/mcc \
 	-v \
-        -m gVision \
+	-m gVision \
 	-d bin \
 	-I src/gVision \
 	-I src/gVision/+plugins \
 	-I src/gVision/doc \
-	-I ${HOME}/Documents/MATLAB/SupportPackages/R2018b/toolbox/imaq/supportpackages/genericvideo/mwgenericvideoimaq.m \
-	-a ${HOME}/Documents/MATLAB/SupportPackages/R2018b/toolbox/imaq/supportpackages/genericvideo/adaptor/maci64/mwmacvideoimaq.dylib
+	-I ${MATLAB_SUPPORT_PACKAGES}/genericvideo/mwgenericvideoimaq.m \
+	-a ${MATLAB_SUPPORT_PACKAGES}/genericvideo/adaptor/win64/mwmacvideoimaq.dylib
 
 clean_mex:
 	-rm -f src/QTRAK/qtrak_common/fhistc.mexmaci64
