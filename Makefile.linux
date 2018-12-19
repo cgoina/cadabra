@@ -1,17 +1,17 @@
-default: qtrak_preprocess qtrak_cluster analysis gVision
+default: qtrak_preprocess qtrak_cluster analysis
 
-MATLAB_SUPPORT_PACKAGES=${HOME}/Documents/MATLAB/SupportPackages/R2018b/toolbox/imaq/supportpackages
+MATLAB_ROOT=/misc/local/matlab-2018b
 
 bin:
 	mkdir -p bin
 
-src/QTRAK/qtrak_common/fhistc.mexmaci64: src/QTRAK/qtrak_common/fhistc.c
+src/QTRAK/qtrak_common/fhistc.mexa64: src/QTRAK/qtrak_common/fhistc.c
 	${MATLAB_ROOT}/bin/mex \
 	src/QTRAK/qtrak_common/fhistc.c \
 	-outdir src/QTRAK/qtrak_common \
 	-v
 
-src/QTRAK/qtrak_common/FFGrab.mexmaci64: src/QTRAK/qtrak_common/FFGrab.cpp
+src/QTRAK/qtrak_common/FFGrab.mexa64: src/QTRAK/qtrak_common/FFGrab.cpp
 	${MATLAB_ROOT}/bin/mex \
 	-Iinclude \
 	-Iinclude/libav \
@@ -20,8 +20,8 @@ src/QTRAK/qtrak_common/FFGrab.mexmaci64: src/QTRAK/qtrak_common/FFGrab.cpp
 	-Llibs -lavbin \
 	-v
 
-mex_compile: src/QTRAK/qtrak_common/fhistc.mexmaci64 \
-             src/QTRAK/qtrak_common/FFGrab.mexmaci64
+mex_compile: src/QTRAK/qtrak_common/fhistc.mexa64 \
+             src/QTRAK/qtrak_common/FFGrab.mexa64
 
 qtrak_preprocess: bin src/QTRAK/qtrak_preprocess/qtrak_preprocess.m \
 		  mex_compile
@@ -31,11 +31,12 @@ qtrak_preprocess: bin src/QTRAK/qtrak_preprocess/qtrak_preprocess.m \
 	-d bin \
 	-I src/QTRAK/qtrak_preprocess \
 	-I src/QTRAK/qtrak_common \
-	-a src/QTRAK/qtrak_common/FFGrab.mexmaci64 \
-	-a src/QTRAK/qtrak_common/fhistc.mexmaci64 \
+	-a src/QTRAK/qtrak_common/FFGrab.mexa64 \
+	-a src/QTRAK/qtrak_common/fhistc.mexa64 \
 	-a src/QTRAK/qtrak_common/ProcessFrameMeanWin.m \
 	-a src/QTRAK/qtrak_common/ProcessFrameCapWin.m \
-        -a libs/libavbin.dylib
+        -a libs/libavbin.so.64
+
 
 qtrak_cluster: bin src/QTRAK/qtrak_cluster/qtrak_cluster.m \
 	       mex_compile
@@ -45,8 +46,8 @@ qtrak_cluster: bin src/QTRAK/qtrak_cluster/qtrak_cluster.m \
 	-d bin \
 	-I src/QTRAK/qtrak_cluster \
 	-I src/QTRAK/qtrak_common \
-	-a src/QTRAK/qtrak_common/FFGrab.mexmaci64 \
-	-a src/QTRAK/qtrak_common/fhistc.mexmaci64 \
+	-a src/QTRAK/qtrak_common/FFGrab.mexa64 \
+	-a src/QTRAK/qtrak_common/fhistc.mexa64 \
 	-a src/QTRAK/qtrak_common/ProcessFrameMeanWin.m \
 	-a src/QTRAK/qtrak_common/ProcessFrameCapWin.m
 	cp src/QTRAK/qtrak_cluster/*.mat bin
@@ -58,21 +59,3 @@ analysis: bin src/ANALYSIS/analysis.m
 	-d bin \
 	-I src/ANALYSIS
 	cp src/ANALYSIS/*.mat bin
-
-gVision: bin src/gVision/gVision.m
-	 ${MATLAB_ROOT}/bin/mcc \
-	-v \
-	-m gVision \
-	-d bin \
-	-I src/gVision \
-	-I src/gVision/+plugins \
-	-I src/gVision/doc \
-	-I ${MATLAB_SUPPORT_PACKAGES}/genericvideo/mwgenericvideoimaq.m \
-	-a ${MATLAB_SUPPORT_PACKAGES}/genericvideo/adaptor/maci64/mwmacvideoimaq.dylib
-
-clean_mex:
-	-rm -f src/QTRAK/qtrak_common/fhistc.mexmaci64
-	-rm -f src/QTRAK/qtrak_common/FFGrab.mexmaci64
-
-clean:
-	-rm -rf bin
