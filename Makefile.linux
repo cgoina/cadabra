@@ -17,7 +17,7 @@ src/QTRAK/qtrak_common/FFGrab.mexa64: src/QTRAK/qtrak_common/FFGrab.cpp
 	-Iinclude/libav \
 	src/QTRAK/qtrak_common/FFGrab.cpp \
 	-outdir src/QTRAK/qtrak_common \
-	-Llibs -lavbin \
+	-Llibs -lavbin-x86_64 \
 	-v
 
 mex_compile: src/QTRAK/qtrak_common/fhistc.mexa64 \
@@ -34,8 +34,7 @@ qtrak_preprocess: bin src/QTRAK/qtrak_preprocess/qtrak_preprocess.m \
 	-a src/QTRAK/qtrak_common/FFGrab.mexa64 \
 	-a src/QTRAK/qtrak_common/fhistc.mexa64 \
 	-a src/QTRAK/qtrak_common/ProcessFrameMeanWin.m \
-	-a src/QTRAK/qtrak_common/ProcessFrameCapWin.m \
-        -a libs/libavbin.so.64
+	-a src/QTRAK/qtrak_common/ProcessFrameCapWin.m
 
 
 qtrak_cluster: bin src/QTRAK/qtrak_cluster/qtrak_cluster.m \
@@ -59,3 +58,11 @@ analysis: bin src/ANALYSIS/analysis.m
 	-d bin \
 	-I src/ANALYSIS
 	cp src/ANALYSIS/*.mat bin
+
+clean_mex:
+	-rm -f src/QTRAK/qtrak_common/fhistc.mexa64
+	-rm -f src/QTRAK/qtrak_common/FFGrab.mexa64
+
+clean:
+	-rm -rf bin
+
