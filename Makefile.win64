@@ -7,8 +7,6 @@ MATLAB_ROOT=/C/Program Files/MATLAB/R2018b
 MCC=${MATLAB_ROOT}/bin/mcc.bat
 MATLAB_SUPPORT_PACKAGES=/C/ProgramData/MATLAB/SupportPackages/R2018b/toolbox/imaq/supportpackages
 
-AVBIN_DIR=/C/Users/goinac/Work/misc/avbin-repos/avbin
-
 MEX_CFLAGS=-DMATLAB_DEFAULT_RELEASE=R2017b \
 	   -DUSE_MEX_CMD \
 	   -m64 -DMATLAB_MEX_FILE \
@@ -76,8 +74,8 @@ qtrak_preprocess: bin src/QTRAK/qtrak_preprocess/qtrak_preprocess.m \
 	-a src/QTRAK/qtrak_common/FFGrab.mexw64 \
 	-a src/QTRAK/qtrak_common/fhistc.mexw64 \
 	-a src/QTRAK/qtrak_common/ProcessFrameMeanWin.m \
-	-a src/QTRAK/qtrak_common/ProcessFrameCapWin.m
-
+	-a src/QTRAK/qtrak_common/ProcessFrameCapWin.m \
+	-T link:exe
 
 qtrak_cluster: bin src/QTRAK/qtrak_cluster/qtrak_cluster.m \
 	       mex_compile
@@ -108,7 +106,9 @@ gVision: bin src/gVision/gVision.m
 	-I src/gVision/+plugins \
 	-I src/gVision/doc \
 	-I ${MATLAB_SUPPORT_PACKAGES}/genericvideo/mwgenericvideoimaq.m \
-	-a ${MATLAB_SUPPORT_PACKAGES}/genericvideo/adaptor/win64/mwwinvideoimaq.dll
+	-a ${MATLAB_SUPPORT_PACKAGES}/genericvideo/adaptor/win64/mwwinvideoimaq.dll \
+	-I ${MATLAB_SUPPORT_PACKAGES}/pointgrey/mwpointgreyimaq.m \
+	-a ${MATLAB_SUPPORT_PACKAGES}/pointgrey/adaptor/win64/mwpointgreyimaq.dll
 
 clean_mex:
 	-rm -f src/QTRAK/qtrak_common/fhistc.mexw64
