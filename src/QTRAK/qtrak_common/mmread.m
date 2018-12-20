@@ -146,8 +146,7 @@ if useFFGRAB
             cd(fileparts(mfilename('fullpath'))); % FFGrab searches for AVbin in the current directory
         end
 
-        [fpath, fname, fext] = fileparts(filename);
-        FFGrab('build',filename, fext, double(disableVideo),double(disableAudio),double(trySeeking));
+        FFGrab('build', filename, double(disableVideo), double(disableAudio), double(trySeeking));
 
         if (isempty(time))
             FFGrab('setFrames',frames);

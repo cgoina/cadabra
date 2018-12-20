@@ -251,7 +251,7 @@ class FFGrabber
 public:
         FFGrabber();
 
-        int build(const char* filename, char* format, bool disableVideo, bool disableAudio, bool tryseeking);
+        int build(const char* filename, bool disableVideo, bool disableAudio, bool tryseeking);
         int doCapture();
 
         int getVideoInfo(unsigned int id, int* width, int* height, double* rate, int* nrFramesCaptured, int* nrFramesTotal, double* totalDuration);
@@ -704,7 +704,7 @@ void FFGrabber::runMatlabCommand(Grabber* G)
 
 #endif
 
-int FFGrabber::build(const char* filename, char* format, bool disableVideo, bool disableAudio, bool tryseeking)
+int FFGrabber::build(const char* filename, bool disableVideo, bool disableAudio, bool tryseeking)
 {
         if (DEBUG) FFprintf("avbin_open_filename %s %s\n", filename);
         file = avbin_open_filename(filename);
@@ -868,26 +868,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         mxGetString(prhs[0],cmd,100);
 
         if (!strcmp("build",cmd)) {
-        if (nrhs < 6 || !mxIsChar(prhs[1])) mexErrMsgTxt("build: parameters must be the filename (as a string), disableVideo, disableAudio, trySeeking");
-        if (nlhs > 0) mexErrMsgTxt("build: there are no outputs");
-        int filenamelen = mxGetN(prhs[1])+1;
-                char* filename = new char[filenamelen];
-        if (!filename) mexErrMsgTxt("build: out of memory");
-        int formatlen = mxGetN(prhs[2])+1;
-        char * format = new char[formatlen];
-        mxGetString(prhs[1],filename,filenamelen);
-        mxGetString(prhs[2],format,formatlen);
-
-        if (strlen(format)==0) {
-                delete[] format;
-                format = NULL;
-        }
-
-        const char* errmsg =  message(FFG.build(filename, format, mxGetScalar(prhs[3]), mxGetScalar(prhs[4]), mxGetScalar(prhs[5])));
-        delete[] format;
-        delete[] filename;
-
-        if (strcmp("",errmsg)) mexErrMsgTxt(errmsg);
+        	if (nrhs < 5 || !mxIsChar(prhs[1])) mexErrMsgTxt("build: parameters must be the filename (as a string), disableVideo, disableAudio, trySeeking");
+        	if (nlhs > 0) mexErrMsgTxt("build: there are no outputs");
+        	int filenamelen = mxGetN(prhs[1])+1;
+            char* filename = new char[filenamelen];
+        	if (!filename) mexErrMsgTxt("build: out of memory");
+        	mxGetString(prhs[1],filename,filenamelen);
+        	const char* errmsg =  message(FFG.build(filename, mxGetScalar(prhs[2]), mxGetScalar(prhs[3]), mxGetScalar(prhs[4])));
+        	delete[] filename;
+        	if (strcmp("",errmsg)) mexErrMsgTxt(errmsg);
         } else if (!strcmp("doCapture",cmd)) {
                 if (nlhs > 0) mexErrMsgTxt("doCapture: there are no outputs");
                 const char* errmsg =  message(FFG.doCapture());
