@@ -293,29 +293,29 @@ global currentFrame_O1 currentFrame_O2;
                 [ObjBuf{ic}.i1111, ObjBuf{ic}.i1112 ] = meas_dist( images(ic), ... 
                      ObjBuf{ic}.i111, ObjBuf{ic}.i112 );
                  
-            currentFrame_O1{ic}.xc(FrameNumber) = ObjBuf{ic}.i1111.xc;
-            currentFrame_O1{ic}.yc(FrameNumber) = ObjBuf{ic}.i1111.yc;
-            currentFrame_O1{ic}.head(FrameNumber) = ObjBuf{ic}.i1111.head;
-            currentFrame_O1{ic}.xh(FrameNumber) = ObjBuf{ic}.i1111.xh;
-            currentFrame_O1{ic}.xt(FrameNumber) = ObjBuf{ic}.i1111.xt;
-            currentFrame_O1{ic}.yh(FrameNumber) = ObjBuf{ic}.i1111.yh;
-            currentFrame_O1{ic}.yt(FrameNumber) = ObjBuf{ic}.i1111.yt;
-            currentFrame_O1{ic}.phir(FrameNumber) = ObjBuf{ic}.i1111.phir;
-            currentFrame_O1{ic}.phil(FrameNumber) = ObjBuf{ic}.i1111.phil;
-            currentFrame_O1{ic}.r(FrameNumber) = ObjBuf{ic}.i1111.r;
-            currentFrame_O1{ic}.l(FrameNumber) = ObjBuf{ic}.i1111.l;
-            
-            currentFrame_O2{ic}.xc(FrameNumber) = ObjBuf{ic}.i1112.xc;
-            currentFrame_O2{ic}.yc(FrameNumber) = ObjBuf{ic}.i1112.yc;
-            currentFrame_O2{ic}.head(FrameNumber) = ObjBuf{ic}.i1112.head;
-            currentFrame_O2{ic}.xh(FrameNumber) = ObjBuf{ic}.i1112.xh;
-            currentFrame_O2{ic}.xt(FrameNumber) = ObjBuf{ic}.i1112.xt;
-            currentFrame_O2{ic}.yh(FrameNumber) = ObjBuf{ic}.i1112.yh;
-            currentFrame_O2{ic}.yt(FrameNumber) = ObjBuf{ic}.i1112.yt;
-            currentFrame_O2{ic}.phir(FrameNumber) = ObjBuf{ic}.i1112.phir;
-            currentFrame_O2{ic}.phil(FrameNumber) = ObjBuf{ic}.i1112.phil;
-            currentFrame_O2{ic}.r(FrameNumber) = ObjBuf{ic}.i1112.r;
-            currentFrame_O2{ic}.l(FrameNumber) = ObjBuf{ic}.i1112.l;
+                currentFrame_O1{ic}.xc(FrameNumber) = ObjBuf{ic}.i1111.xc;
+                currentFrame_O1{ic}.yc(FrameNumber) = ObjBuf{ic}.i1111.yc;
+                currentFrame_O1{ic}.head(FrameNumber) = ObjBuf{ic}.i1111.head;
+                currentFrame_O1{ic}.xh(FrameNumber) = ObjBuf{ic}.i1111.xh;
+                currentFrame_O1{ic}.xt(FrameNumber) = ObjBuf{ic}.i1111.xt;
+                currentFrame_O1{ic}.yh(FrameNumber) = ObjBuf{ic}.i1111.yh;
+                currentFrame_O1{ic}.yt(FrameNumber) = ObjBuf{ic}.i1111.yt;
+                currentFrame_O1{ic}.phir(FrameNumber) = ObjBuf{ic}.i1111.phir;
+                currentFrame_O1{ic}.phil(FrameNumber) = ObjBuf{ic}.i1111.phil;
+                currentFrame_O1{ic}.r(FrameNumber) = ObjBuf{ic}.i1111.r;
+                currentFrame_O1{ic}.l(FrameNumber) = ObjBuf{ic}.i1111.l;
+
+                currentFrame_O2{ic}.xc(FrameNumber) = ObjBuf{ic}.i1112.xc;
+                currentFrame_O2{ic}.yc(FrameNumber) = ObjBuf{ic}.i1112.yc;
+                currentFrame_O2{ic}.head(FrameNumber) = ObjBuf{ic}.i1112.head;
+                currentFrame_O2{ic}.xh(FrameNumber) = ObjBuf{ic}.i1112.xh;
+                currentFrame_O2{ic}.xt(FrameNumber) = ObjBuf{ic}.i1112.xt;
+                currentFrame_O2{ic}.yh(FrameNumber) = ObjBuf{ic}.i1112.yh;
+                currentFrame_O2{ic}.yt(FrameNumber) = ObjBuf{ic}.i1112.yt;
+                currentFrame_O2{ic}.phir(FrameNumber) = ObjBuf{ic}.i1112.phir;
+                currentFrame_O2{ic}.phil(FrameNumber) = ObjBuf{ic}.i1112.phil;
+                currentFrame_O2{ic}.r(FrameNumber) = ObjBuf{ic}.i1112.r;
+                currentFrame_O2{ic}.l(FrameNumber) = ObjBuf{ic}.i1112.l;
 
                 %%
                 % If counter is not shown on the display panel, provide 

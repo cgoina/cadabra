@@ -45,20 +45,6 @@
 % feature that can be revised in the next iteration of this code.
 function qtrak_cluster(inputFile)
 
-%#function ProcessFrameCapWin
-%#function PlotImage_Captioning
-%#function histfit
-%#function fhist gmmactiv gmmpost
-%#function FFGrab seg_fullfly_inflexbox
-%#function fhistc ellipsefit write_sequence
-%#function gauss write_sequence_crop callback
-%#function seg_fullfly_inconstbox segfly fotsu
-%#function intersect_flies fly_bodymeas switch_flies
-%#function fly_headtailwings mask2ellipses gmm gmminit consist
-%#function kmeans dist2 gmmem gmmprob histfit
-%#function auto_cal auto_cal_circ CircularHough_Grd fhistc openavi
-%#function calibrate calibrate fhistfit GNU_message
-
 % global params chamber scale;
 % global slashstr Files NFiles strInVideoFNameArray;
 % global DimX DimY DimZ Spacer;
@@ -67,8 +53,8 @@ function qtrak_cluster(inputFile)
 global object object_1 object_2;
 global currentFrame_O1 currentFrame_O2;
 
-% Per Eric request, the moive might be moved to archieve, the inputfile can
-% be either a moive file or a configuration file
+% Per Eric request, the movie might be moved to archive, the inputfile can
+% be either a movie file or a configuration file
 if nargin
     [inputFilePath, inputFileName] = fileparts(inputFile);
     inputFilePath = [inputFilePath '/'];
@@ -159,7 +145,7 @@ for i=1:params.nchambers
         return
     end
 
-    fprintf( Files.FeatureFID{i}, '%14s', ...
+    fprintf(Files.FeatureFID{i}, '%14s', ...
         'frame'       ,'time [s]'    ,'fly1_dir'    ,'fly2_dir'    , ...
         'fly1_mvdir'  ,'fly2_mvdir'  ,'fly1_ori'    ,'fly2_ori'    , ...
         'dir_diff'    ,'mvdir_diff'  ,'1to2_mvdird' ,'2to1_mvdird' , ...
