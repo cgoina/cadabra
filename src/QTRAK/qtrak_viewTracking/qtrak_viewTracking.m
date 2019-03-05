@@ -192,15 +192,9 @@ global object_1 object_2;
     % During benchmarking, openavi is executed in a non-interactive mode,
     % which is done by setting 0 in its input argument. 
     
-%     if ~nargin
-        params.findex = 1;
-        openavi(1);
-        params.filechg = 0;        
-%     else
-%         %% Load ToDo list for file-list processing "qtrak(input_list)"
-%         %% Compare with already processed files
-%         [strInVideoFNameArray,NFiles,Files] = readlog(input_list,0);
-%     end
+    params.findex = 1;
+    openavi(1);
+    params.filechg = 0;        
     
     FileCount = 0;
 
@@ -260,15 +254,6 @@ global object_1 object_2;
             end
         end
 
-%         mearoidat = [Files.strInVideoPath slashstr '' Files.strInVideoFName '_mearoi.mat'];
-%         load(mearoidat);
-
-%         if ispc,
-%             mexDDGrab( 'setChambers', mea, roiCorners, params.bool_dot );
-%         else
-%             FFGrab( 'setChambers', mea, roiCorners, params.bool_dot );
-%         end
-
         try
             mmread( Files.strInFName, intStartFrm : intStartFrm+ intNFrms, ...                    
                     [], false, true, 'TrackEachFrame', false );
@@ -288,11 +273,9 @@ global object_1 object_2;
         fprintf('time elapsed: %02.0f:%02.0f mm:ss\n', floor(telapsed/60), mod(telapsed,60));
 
     end %for
-        
-        
+
     %%
     % Close the figure
-%     if params.bool_plottrack && FigureHandle,
     if FigureHandle,
         close(FigureHandle);
     end
