@@ -281,7 +281,7 @@ int32_t avbin_read_next_packet(AVbinFile* file, AVbinPacket* packet)
     return AVBIN_RESULT_OK;
 }
 
-int avbin_decode_audio(AVbinStream* stream)
+int32_t avbin_decode_audio(AVbinStream* stream, AVbinPacket* packet)
 {
     int bytes_used = 0;
     if (stream->type != AVMEDIA_TYPE_AUDIO)
@@ -290,3 +290,10 @@ int avbin_decode_audio(AVbinStream* stream)
     // FIXME !!!!!
     return bytes_used;
 }
+
+int32_t avbin_decode_video(AVbinStream *stream, AVbinPacket* packet)
+{
+    // FIXME !!!!!
+    return 0;
+}
+
