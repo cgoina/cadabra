@@ -98,6 +98,7 @@ gVision: bin src/gVision/gVision.m
 	-a ${MATLAB_SUPPORT_PACKAGES}/genericvideo/adaptor/maci64/mwmacvideoimaq.dylib
 
 clean_mex:
+	-rm -f bin/avbin.o bin/libavbin.dylib
 	-rm -f src/QTRAK/qtrak_common/fhistc.mexmaci64
 	-rm -f src/QTRAK/qtrak_common/FFGrab.mexmaci64 bin/avbin.o
 

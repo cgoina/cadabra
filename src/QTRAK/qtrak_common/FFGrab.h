@@ -1,7 +1,7 @@
 #ifndef FFGRAB_H
 #define FFGRAB_H
 
-#define DEBUG_LEVEL 0
+#define DEBUG_LEVEL 48
 
 #include "avbin.h"
 
@@ -31,7 +31,8 @@ public:
     ~Grabber()
     {
         // clean up any remaining memory...
-        for (vector<uint8_t*>::iterator i=frames.begin();i != frames.end(); i++) free(*i);
+        for (vector<uint8_t*>::iterator i=frames.begin();i != frames.end(); i++)
+        	av_free(*i);
     }
 
     AVbinStream* stream;

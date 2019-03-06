@@ -140,12 +140,13 @@ int Grabber::grabVideoPacket(AVbinPacket *packet, double from_timestamp, int cap
         FFprintf("Error allocating %d bytes for videobuf\n", numBytes);
         return 2;
     }
-    if (DEBUG_LEVEL > 0) FFprintf("avbin_decode_video %d to %x\n", packet->size, videobuf);
+    if (DEBUG_LEVEL > 0) FFprintf("avbin_decode_video packet size = %d, buffer -> %x\n", packet->size, videobuf);
 
     int nBytesRead = avbin_decode_video_frame(stream, packet, videobuf);
-    if (nBytesRead <= 0)
+    if (DEBUG_LEVEL > 0) FFprintf("avbin_decode_video_frame nBytesRead = %d\n", nBytesRead);
+    if (nBytesRead < 0)
     {
-        FFprintf("avbin_decode_video FAILED!\n");
+        FFprintf("avbin_decode_video_frame result=%d!\n", nBytesRead);
         // silently ignore decode errors
         frameNr--;
         free(videobuf);
@@ -263,7 +264,7 @@ void FFGrabber::getCaptureInfo(int* nrVideo, int* nrAudio)
 // data must be freed by caller
 int FFGrabber::getVideoFrame(unsigned int id, unsigned int frameNr, uint8_t** data, unsigned int* nrBytes, double* time)
 {
-    if (DEBUG_LEVEL > 0) FFprintf("getting Video frame %d\n",frameNr);
+    if (DEBUG_LEVEL > 0) FFprintf("getting Video frame %d %f\n",frameNr);
 
     if (!data || !nrBytes) return -1;
 
@@ -873,6 +874,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         free(data);
         if (nlhs >= 2) {plhs[1] = mxCreateDoubleMatrix(1,1,mxREAL); mxGetPr(plhs[1])[0] = time; }
     } else if (!strcmp("setFrames",cmd)) {
+        if (DEBUG_LEVEL > 0) FFprintf("Calling setFrames");
         if (nrhs < 2 || !mxIsDouble(prhs[1])) mexErrMsgTxt("setFrames: second parameter must be the frame numbers (as doubles)");
         if (nlhs > 0) mexErrMsgTxt("setFrames: has no outputs");
         int nrFrames = mxGetN(prhs[1]) * mxGetM(prhs[1]);
