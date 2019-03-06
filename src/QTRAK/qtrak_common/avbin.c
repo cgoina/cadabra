@@ -253,6 +253,20 @@ AVbinStream *avbin_open_stream(AVbinFile *file, int32_t stream_index)
     stream->orig_codec_context = orig_codec_context;
     stream->type = codec_context->codec_type;
     stream->frame = frame;
+    // initialize SWS context for software scaling
+    stream->sws_ctx = sws_getContext(
+        codec_context->width,
+        codec_context->height,
+        codec_context->pix_fmt,
+        codec_context->width,
+        codec_context->height,
+        AV_PIX_FMT_RGB24,   // sws_scale destination color scheme
+        SWS_BILINEAR,
+        NULL,
+        NULL,
+        NULL
+    );
+
     return stream;
 }
 
@@ -291,9 +305,76 @@ int32_t avbin_decode_audio(AVbinStream* stream, AVbinPacket* packet)
     return bytes_used;
 }
 
-int32_t avbin_decode_video(AVbinStream *stream, AVbinPacket* packet)
+int32_t avbin_decode_video_frame(AVbinStream *stream, AVbinPacket* packet, uint8_t* output_buffer)
 {
-	int ret = avcodec_send_packet(stream->codec_context, packet->packet);    // [15]
+	AVFrame* pFrameRGB = av_frame_alloc();
+    if (pFrameRGB == NULL)
+    {
+        // Could not allocate frame
+        return -1;
+    }
+
+    /**
+    * Now we use avpicture_fill() to associate the frame with our newly
+    * allocated buffer. About the AVPicture cast: the AVPicture struct is
+    * a subset of the AVFrame struct - the beginning of the AVFrame struct
+    * is identical to the AVPicture struct.
+    */
+    // Assign appropriate parts of buffer to image planes in pFrameRGB
+    // Note that pFrameRGB is an AVFrame, but AVFrame is a superset
+    // of AVPicture
+    // Picture data structure - Deprecated: use AVFrame or imgutils functions
+    // instead
+    // https://www.ffmpeg.org/doxygen/3.0/structAVPicture.html#a40dfe654d0f619d05681aed6f99af21b
+    // avpicture_fill( // [12]
+    //     (AVPicture *)pFrameRGB,
+    //     buffer,
+    //     AV_PIX_FMT_RGB24,
+    //     pCodecCtx->width,
+    //     pCodecCtx->height
+    // );
+    av_image_fill_arrays(
+        pFrameRGB->data,
+        pFrameRGB->linesize,
+        output_buffer,
+        AV_PIX_FMT_RGB24,
+        stream->codec_context->width,
+        stream->codec_context->height,
+        32
+    );
+
+	int ret = avcodec_send_packet(stream->codec_context, packet->packet);
+    if (ret < 0)
+    {
+        // could not send packet for decoding
+        return -1;
+    }
+    while (ret >= 0)
+    {
+        ret = avcodec_receive_frame(stream->codec_context, stream->frame);
+
+        if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
+        {
+            // EOF exit loop
+            break;
+        }
+        else if (ret < 0)
+        {
+            // could not decode packet
+            return -1;
+        }
+        // Convert the image from its native format to RGB
+
+        sws_scale(stream->sws_ctx,
+                  (uint8_t const * const *)stream->frame->data,
+                  stream->frame->linesize,
+                  0,
+                  stream->codec_context->height,
+                  pFrameRGB->data,
+                  pFrameRGB->linesize
+        );
+        return stream->frame->linesize[0] * stream->codec_context->height;
+	}
 
     // FIXME !!!!!
     return 0;

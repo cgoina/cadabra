@@ -240,6 +240,7 @@ typedef struct _AVbinStream {
     AVCodecContext *orig_codec_context;
     AVCodecContext *codec_context;
     AVFrame *frame;
+    struct SwsContext* sws_ctx;
 } AVbinStream;
 
 
@@ -255,6 +256,6 @@ AVbinStream* avbin_open_stream(AVbinFile *file, int32_t stream_index);
 void avbin_close_stream(AVbinStream *stream);
 int32_t avbin_read_next_packet(AVbinFile* file, AVbinPacket* packet);
 int32_t avbin_decode_audio(AVbinStream* stream, AVbinPacket* packet);
-int32_t avbin_decode_video(AVbinStream* stream, AVbinPacket* packet);
+int32_t avbin_decode_video_frame(AVbinStream* stream, AVbinPacket* packet, uint8_t* output_buffer);
 
 #endif // end AVBIN_H

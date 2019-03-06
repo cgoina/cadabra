@@ -101,7 +101,7 @@ int Grabber::Grab(AVbinPacket *packet)
 
 int Grabber::grabAudioPacket(AVbinPacket *packet, double from_timestamp, int capture_length)
 {
-    if (trySeeking && (len<=0 || done)) return 0;
+    if (trySeeking && (capture_length <= 0 || done)) return 0;
 
     // !!!!! TODO
     return 0;
@@ -142,7 +142,7 @@ int Grabber::grabVideoPacket(AVbinPacket *packet, double from_timestamp, int cap
     }
     if (DEBUG_LEVEL > 0) FFprintf("avbin_decode_video %d to %x\n", packet->size, videobuf);
 
-    int nBytesRead = avbin_decode_video(stream, packet);
+    int nBytesRead = avbin_decode_video_frame(stream, packet, videobuf);
     if (nBytesRead <= 0)
     {
         FFprintf("avbin_decode_video FAILED!\n");
@@ -657,11 +657,11 @@ int FFGrabber::doCapture()
 
             if (G->done)
             {
-                    allDone = true;
-                    for (streammap::iterator i = streams.begin(); i != streams.end() && allDone; i++)
-                    {
-                            allDone = allDone && i->second->done;
-                    }
+                allDone = true;
+                for (streammap::iterator i = streams.begin(); i != streams.end() && allDone; i++)
+                {
+                    allDone = allDone && i->second->done;
+                }
             }
 
 #ifdef MATLAB_MEX_FILE
