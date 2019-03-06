@@ -293,6 +293,8 @@ int32_t avbin_decode_audio(AVbinStream* stream, AVbinPacket* packet)
 
 int32_t avbin_decode_video(AVbinStream *stream, AVbinPacket* packet)
 {
+	int ret = avcodec_send_packet(stream->codec_context, packet->packet);    // [15]
+
     // FIXME !!!!!
     return 0;
 }
