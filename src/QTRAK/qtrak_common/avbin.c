@@ -347,36 +347,31 @@ int32_t avbin_decode_video_frame(AVbinStream *stream, AVbinPacket* packet, uint8
     if (ret < 0)
     {
         // could not send packet for decoding
-        return -1;
+	    av_frame_free(&pFrameRGB);
+    	av_free(pFrameRGB);
+        return ret;
     }
-    while (ret >= 0)
+    ret = avcodec_receive_frame(stream->codec_context, stream->frame);
+
+    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
     {
-        ret = avcodec_receive_frame(stream->codec_context, stream->frame);
-
-        if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
-        {
-            // EOF exit loop
-            break;
-        }
-        else if (ret < 0)
-        {
-            // could not decode packet
-            return -1;
-        }
-        // Convert the image from its native format to RGB
-
-        sws_scale(stream->sws_ctx,
-                  (uint8_t const * const *)stream->frame->data,
-                  stream->frame->linesize,
-                  0,
-                  stream->codec_context->height,
-                  pFrameRGB->data,
-                  pFrameRGB->linesize
-        );
-        return stream->frame->linesize[0] * stream->codec_context->height;
+        // EOF
+        ret = 0;
+    }
+    else if (ret == 0)
+    {
+	    // successful decoding => convert the image from its native format to RGB
+	    sws_scale(stream->sws_ctx,
+	              (uint8_t const * const *)stream->frame->data,
+	              stream->frame->linesize,
+	              0,
+	              stream->codec_context->height,
+	              pFrameRGB->data,
+	              pFrameRGB->linesize
+	    );
+	    ret = stream->frame->linesize[0] * stream->codec_context->height * 3;
 	}
-
-    // FIXME !!!!!
-    return 0;
+    av_frame_free(&pFrameRGB);
+    av_free(pFrameRGB);
+    return ret;
 }
-

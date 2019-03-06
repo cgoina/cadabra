@@ -149,14 +149,14 @@ if useFFGRAB
         FFGrab('build', filename, double(disableVideo), double(disableAudio), double(trySeeking));
 
         if (isempty(time))
-            FFGrab('setFrames',frames);
+            FFGrab('setFrames', frames);
         else
             if (numel(time) ~= 2)
                 error('time must be a vector of length 2: [startTime stopTime]');
             end
             FFGrab('setTime',time(1),time(2));
         end
-        FFGrab('setMatlabCommand',matlabCommand);
+        FFGrab('setMatlabCommand', matlabCommand);
         
         try
             FFGrab('doCapture');
