@@ -101,6 +101,8 @@ int Grabber::Grab(AVbinPacket *packet)
 
 int Grabber::grabAudioPacket(AVbinPacket *packet, double from_timestamp, int capture_length)
 {
+    if (trySeeking && (len<=0 || done)) return 0;
+
     // !!!!! TODO
     return 0;
 }
@@ -143,7 +145,7 @@ int Grabber::grabVideoPacket(AVbinPacket *packet, double from_timestamp, int cap
     int nBytesRead = avbin_decode_video(stream, packet);
     if (nBytesRead <= 0)
     {
-        FFprintf("avbin_decode_video FAILED!!!\n");
+        FFprintf("avbin_decode_video FAILED!\n");
         // silently ignore decode errors
         frameNr--;
         free(videobuf);
@@ -166,8 +168,6 @@ int Grabber::grabVideoPacket(AVbinPacket *packet, double from_timestamp, int cap
         frameBytes.push_back(buflen);
         frameTimes.push_back(from_timestamp);
     }
-
-    // !!!!! TODO
     return 0;
 }
 
@@ -183,7 +183,7 @@ FFGrabber::FFGrabber()
     noofChambers = 0;
 #endif
 
-    if (avbin_init() != AVBIN_RESULT_OK) FFprintf("avbin_init init failed!!!\n");
+    if (avbin_init() != AVBIN_RESULT_OK) FFprintf("avbin_init init failed!\n");
     avbin_set_log_level(DEBUG_LEVEL);
 }
 
