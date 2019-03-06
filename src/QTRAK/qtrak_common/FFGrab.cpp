@@ -72,8 +72,9 @@ int Grabber::Grab(AVbinPacket *packet)
             if (timestamp >= startTime)
             {
                 // if we've reached the start...
-                offset = max(0, ((int)((startTime-timestamp) * rate)) * bytesPerWORD);
-                len = ((int)((stopTime-timestamp)*rate))*bytesPerWORD;
+                int bytesPerWord = info.audio.sample_bits * info.audio.channels / 8;
+                offset = max(0, ((int)((timestamp - startTime) * rate)) * bytesPerWord);
+                len = ((int)((stopTime - timestamp) * rate)) * bytesPerWord;
                 // if we have gone past our stop time...
                 done = len < 0;
             }
@@ -89,23 +90,83 @@ int Grabber::Grab(AVbinPacket *packet)
 
     if (isAudio)
     {
-        return grabAudioPacket(packet);
+        return grabAudioPacket(packet, timestamp, len);
     }
     else
     {
-        return grabVideoPacket(packet);
+        return grabVideoPacket(packet, timestamp, len);
     }
     return 0;
 }
 
-int Grabber::grabAudioPacket(AVbinPacket *packet)
+int Grabber::grabAudioPacket(AVbinPacket *packet, double from_timestamp, int capture_length)
 {
     // !!!!! TODO
     return 0;
 }
 
-int Grabber::grabVideoPacket(AVbinPacket *packet)
+int Grabber::grabVideoPacket(AVbinPacket *packet, double from_timestamp, int capture_length)
 {
+    bool skip = false;
+    if (frameNrs.size() > 0)
+    {
+        //frames are being specified
+        // check to see if the frame is in our list
+        bool foundNr = false;
+        unsigned int lastFrameNr = 0;
+        for (int i=0; i < frameNrs.size(); i++)
+        {
+            if (frameNrs.at(i) == frameNr) foundNr = true;
+            if (frameNrs.at(i) > lastFrameNr) lastFrameNr = frameNrs.at(i);
+        }
+        done = frameNr > lastFrameNr;
+        if (!foundNr) {
+            if (DEBUG_LEVEL > 0) FFprintf("Skipping frame %d\n", frameNr);
+            skip = true;
+        }
+    }
+    if ((trySeeking && skip && packetNr < startDecodingAt && packetNr != 1) || done) return 0;
+
+    // allocate buffer for the 
+    int numBytes = av_image_get_buffer_size(AV_PIX_FMT_RGB24, 
+                                            stream->codec_context->width,
+                                            stream->codec_context->height,
+                                            32);
+    uint8_t* videobuf = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
+
+    if (videobuf == NULL) {
+        FFprintf("Error allocating %d bytes for videobuf\n", numBytes);
+        return 2;
+    }
+    if (DEBUG_LEVEL > 0) FFprintf("avbin_decode_video %d to %x\n", packet->size, videobuf);
+
+    int nBytesRead = avbin_decode_video(stream, packet);
+    if (nBytesRead <= 0)
+    {
+        FFprintf("avbin_decode_video FAILED!!!\n");
+        // silently ignore decode errors
+        frameNr--;
+        free(videobuf);
+        return 3;
+    }
+    if (stream->frame->key_frame)
+    {
+        keyframes[packetNr] = from_timestamp;
+    }
+
+    if (skip || capture_length == 0)
+    {
+        if (DEBUG_LEVEL > 0) FFprintf("Free videobuf %x\n", videobuf);
+        av_free(videobuf);
+        return 0;
+    } else {
+        size_t buflen = min(capture_length, numBytes);
+        if (DEBUG_LEVEL > 0) FFprintf("Push videobuf %f: %d bytes to %x\n", from_timestamp, buflen, videobuf);
+        frames.push_back(videobuf);
+        frameBytes.push_back(buflen);
+        frameTimes.push_back(from_timestamp);
+    }
+
     // !!!!! TODO
     return 0;
 }
@@ -534,12 +595,16 @@ int FFGrabber::build(const char* filename, bool disableVideo, bool disableAudio,
 
         if (streaminfo.type == AVBIN_STREAM_TYPE_VIDEO && !disableVideo)
         {
-            AVbinStream * tmp = avbin_open_stream(file, stream_index);
+            AVbinStream* tmp = avbin_open_stream(file, stream_index);
             if (tmp)
             {
                 double rate = streaminfo.video.frame_rate_num/(0.00001+streaminfo.video.frame_rate_den);
-
-                streams[stream_index]=new Grabber(false,tmp,tryseeking,rate,streaminfo.video.height*streaminfo.video.width*3,streaminfo,fileinfo.start_time);
+                streams[stream_index] = new Grabber(false,
+                                                    tmp,
+                                                    tryseeking,
+                                                    rate,
+                                                    streaminfo,
+                                                    fileinfo.start_time);
                 videos.push_back(streams[stream_index]);
             }
             else {
@@ -548,10 +613,15 @@ int FFGrabber::build(const char* filename, bool disableVideo, bool disableAudio,
         }
         if (streaminfo.type == AVBIN_STREAM_TYPE_AUDIO && !disableAudio)
         {
-            AVbinStream * tmp = avbin_open_stream(file, stream_index);
+            AVbinStream* tmp = avbin_open_stream(file, stream_index);
             if (tmp)
             {
-                streams[stream_index] = new Grabber(true,tmp,tryseeking,streaminfo.audio.sample_rate,streaminfo.audio.sample_bits*streaminfo.audio.channels,streaminfo,fileinfo.start_time);
+                streams[stream_index] = new Grabber(true,
+                                                    tmp,
+                                                    tryseeking,
+                                                    streaminfo.audio.sample_rate,
+                                                    streaminfo,
+                                                    fileinfo.start_time);
                 audios.push_back(streams[stream_index]);
             } else {
                 FFprintf("Could not open audio stream\n");

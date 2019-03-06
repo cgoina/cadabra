@@ -12,7 +12,6 @@ public:
             AVbinStream* stream,
             bool trySeeking,
             double rate,
-            int bytesPerWORD,
             AVbinStreamInfo info,
             int64_t start_time)
     {
@@ -20,7 +19,6 @@ public:
         frameNr = 0;
         packetNr = 0;
         done = false;
-        this->bytesPerWORD = bytesPerWORD;
         this->rate = rate;
         startTime = 0;
         stopTime = 0;
@@ -52,14 +50,13 @@ public:
     bool isAudio;
     bool trySeeking;
 
-    int bytesPerWORD;
     double rate;
     double startTime, stopTime;
 
     int Grab(AVbinPacket* packet);
 private:
-	int grabAudioPacket(AVbinPacket* packet);
-	int grabVideoPacket(AVbinPacket* packet);
+	int grabAudioPacket(AVbinPacket* packet, double from_timestamp, int capture_length);
+	int grabVideoPacket(AVbinPacket* packet, double from_timestamp, int capture_length);
 };
 
 typedef map<int,Grabber*> streammap;

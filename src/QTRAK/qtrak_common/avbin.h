@@ -7,6 +7,7 @@ extern "C" {
 	#include <libavformat/avformat.h>
 	#include <libavutil/avutil.h>
 	#include <libavutil/dict.h>
+	#include <libavutil/imgutils.h>
 	#include <libavutil/mathematics.h>
 	#include <libswscale/swscale.h>
 }
@@ -253,6 +254,7 @@ AVbinResult avbin_stream_info(AVbinFile* file, int32_t stream_index, AVbinStream
 AVbinStream* avbin_open_stream(AVbinFile *file, int32_t stream_index);
 void avbin_close_stream(AVbinStream *stream);
 int32_t avbin_read_next_packet(AVbinFile* file, AVbinPacket* packet);
-int avbin_decode_audio(AVbinStream* stream);
+int32_t avbin_decode_audio(AVbinStream* stream, AVbinPacket* packet);
+int32_t avbin_decode_video(AVbinStream* stream, AVbinPacket* packet);
 
 #endif // end AVBIN_H
