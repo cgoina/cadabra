@@ -17,10 +17,14 @@
 
 #ifdef __cplusplus
 extern "C" {
-	#include <libavcodec/avcodec.h>
-	#include <libavutil/imgutils.h>
-	#include <libavformat/avformat.h>
-	#include <libswscale/swscale.h>
+#endif
+
+#include <libavcodec/avcodec.h>
+#include <libavutil/imgutils.h>
+#include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
+
+#ifdef __cplusplus
 }
 #endif
 
