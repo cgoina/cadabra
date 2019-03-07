@@ -58,10 +58,11 @@ int Grabber::Grab(AVbinPacket *packet)
 
     frameNr++;
     packetNr++;
-    if (DEBUG_LEVEL > 0) FFprintf("frameNr %d %d\n",frameNr,packetNr);
     int offset = 0, len = 0;
     double timestamp = (packet->timestamp - start_time) / 1000.0 / 1000.0;
-    if (DEBUG_LEVEL > 0) FFprintf("time %lld %lld %lf\n",packet->timestamp, start_time, timestamp);
+    if (DEBUG_LEVEL > 0) 
+        FFprintf("frameNr: %d,  packetNr: %d, start time: %lld, packet ts:%lld, ts: %lf, stop time: %lf\n", 
+                 frameNr, packetNr, start_time, packet->timestamp, timestamp, stopTime);
 
     // either no frames are specified (capture all), or we have time specified
     if (stopTime)
@@ -140,7 +141,7 @@ int Grabber::grabVideoPacket(AVbinPacket *packet, double from_timestamp, int cap
         FFprintf("Error allocating %d bytes for videobuf\n", numBytes);
         return 2;
     }
-    if (DEBUG_LEVEL > 0) FFprintf("avbin_decode_video packet size = %d, buffer -> %x\n", packet->size, videobuf);
+    if (DEBUG_LEVEL > 0) FFprintf("avbin_decode_video packet size = %lu, buffer -> %p\n", packet->size, videobuf);
 
     int nBytesRead = avbin_decode_video_frame(stream, packet, videobuf);
     if (DEBUG_LEVEL > 0) FFprintf("avbin_decode_video_frame nBytesRead = %d\n", nBytesRead);
@@ -149,7 +150,7 @@ int Grabber::grabVideoPacket(AVbinPacket *packet, double from_timestamp, int cap
         FFprintf("avbin_decode_video_frame result=%d!\n", nBytesRead);
         // silently ignore decode errors
         frameNr--;
-        free(videobuf);
+        av_free(videobuf);
         return 3;
     }
     if (stream->frame->key_frame)
@@ -159,12 +160,12 @@ int Grabber::grabVideoPacket(AVbinPacket *packet, double from_timestamp, int cap
 
     if (skip || capture_length == 0)
     {
-        if (DEBUG_LEVEL > 0) FFprintf("Free videobuf %x\n", videobuf);
+        if (DEBUG_LEVEL > 0) FFprintf("Free videobuf %p\n", videobuf);
         av_free(videobuf);
         return 0;
     } else {
         size_t buflen = min(capture_length, numBytes);
-        if (DEBUG_LEVEL > 0) FFprintf("Push videobuf %f: %d bytes to %x\n", from_timestamp, buflen, videobuf);
+        if (DEBUG_LEVEL > 0) FFprintf("Push videobuf %f: %lu bytes to %p\n", from_timestamp, buflen, videobuf);
         frames.push_back(videobuf);
         frameBytes.push_back(buflen);
         frameTimes.push_back(from_timestamp);
@@ -224,10 +225,10 @@ int FFGrabber::getVideoInfo(unsigned int id, int* width, int* height, double* ra
     *height = CB->info.video.height;
     *rate = CB->rate;
     *nrFramesCaptured = CB->frames.size();
-    *nrFramesTotal = CB->frameNr;
+    *nrFramesTotal = CB->nrFramesTotal;
 
     *totalDuration = fileinfo.duration/1000.0/1000.0;
-    if (stopForced) *nrFramesTotal = (int)(-(*rate)*(*totalDuration));
+    if (DEBUG_LEVEL > 0) FFprintf("video info lastframe = %u, totalFrames= %lld\n", CB->frameNr, CB->nrFramesTotal);
 
     return 0;
 }
@@ -264,7 +265,7 @@ void FFGrabber::getCaptureInfo(int* nrVideo, int* nrAudio)
 // data must be freed by caller
 int FFGrabber::getVideoFrame(unsigned int id, unsigned int frameNr, uint8_t** data, unsigned int* nrBytes, double* time)
 {
-    if (DEBUG_LEVEL > 0) FFprintf("getting Video frame %d %f\n",frameNr);
+    if (DEBUG_LEVEL > 0) FFprintf("getting Video frame %d %d\n",id, frameNr);
 
     if (!data || !nrBytes) return -1;
 
@@ -311,12 +312,17 @@ int FFGrabber::getAudioFrame(unsigned int id, unsigned int frameNr, uint8_t** da
 
 void FFGrabber::setFrames(unsigned int* frameNrs, int nrFrames)
 {
+    if (DEBUG_LEVEL > 0) FFprintf("setFrames in %p to %d\n", frameNrs, nrFrames);
     if (!frameNrs) return;
 
     unsigned int minFrame=nrFrames>0?frameNrs[0]:0;
 
     this->frameNrs.clear();
-    for (int i=0; i < nrFrames; i++) this->frameNrs.push_back(frameNrs[i]);
+    for (int i=0; i < nrFrames; i++)
+    {
+        if (DEBUG_LEVEL > AVBIN_LOG_DEBUG) FFprintf("setFrames add frame %d\n", frameNrs[i]);
+        this->frameNrs.push_back(frameNrs[i]);
+    }
 
     for (int j=0; j < videos.size(); j++)
     {
@@ -325,10 +331,10 @@ void FFGrabber::setFrames(unsigned int* frameNrs, int nrFrames)
         {
             CB->frames.clear();
             CB->frameNrs.clear();
-            for (int i=0; i<nrFrames; i++)
+            for (int i=0; i < nrFrames; i++)
             {
                 CB->frameNrs.push_back(frameNrs[i]);
-                minFrame=frameNrs[i]<minFrame?frameNrs[i]:minFrame;
+                minFrame=frameNrs[i] < minFrame ? frameNrs[i] : minFrame;
             }
             CB->frameNr = 0;
             CB->packetNr = 0;
@@ -555,7 +561,7 @@ void FFGrabber::runMatlabCommand(Grabber* G)
 
 int FFGrabber::build(const char* filename, bool disableVideo, bool disableAudio, bool tryseeking)
 {
-    if (DEBUG_LEVEL > 0) FFprintf("avbin_open_filename %s %s\n", filename);
+    if (DEBUG_LEVEL > 0) FFprintf("avbin_open_filename %s\n", filename);
     file = avbin_open_filename(filename);
     if (!file) {
         if (DEBUG_LEVEL > 0) FFprintf("Error in avbin_open_filename %s\n", filename);
@@ -582,20 +588,28 @@ int FFGrabber::build(const char* filename, bool disableVideo, bool disableAudio,
         if (DEBUG_LEVEL > 0) FFprintf("ERROR avbin_file_info\n");
         return -1;
     }
-    if (DEBUG_LEVEL > 0) FFprintf("avbin_file_info size: %ld\n", fileinfo.structure_size);
+    if (DEBUG_LEVEL > 0) 
+        FFprintf("avbin_file_info size: %ld, streams: %d, start time: %lld\n", 
+                 fileinfo.structure_size, fileinfo.n_streams, fileinfo.start_time);
 
-    for (int stream_index=0; stream_index<fileinfo.n_streams; stream_index++)
+    for (int stream_index=0; stream_index < fileinfo.n_streams; stream_index++)
     {
         AVbinStreamInfo streaminfo;
         streaminfo.structure_size = sizeof(streaminfo);
 
-        if (DEBUG_LEVEL > 0) FFprintf("avbin_stream_info\n");
-        avbin_stream_info(file, stream_index, &streaminfo);
-
-        if (DEBUG_LEVEL > 0) FFprintf("%lld\n",streaminfo,fileinfo.start_time);
-
+        int sinfo_res = avbin_stream_info(file, stream_index, &streaminfo);
+        if (sinfo_res < 0)
+        {
+            FFprintf("Error retrieving stream info for stream %d\n", stream_index);
+        }
         if (streaminfo.type == AVBIN_STREAM_TYPE_VIDEO && !disableVideo)
         {
+            if (DEBUG_LEVEL > 0) 
+                FFprintf("video stream found - width: %d, height: %d, aspect_ratio: %d : %d, rate: %d : %d, total frames: %lld\n",
+                         streaminfo.video.width, streaminfo.video.height,
+                         streaminfo.video.sample_aspect_num, streaminfo.video.sample_aspect_den,
+                         streaminfo.video.frame_rate_num, streaminfo.video.frame_rate_den,
+                         streaminfo.video.nb_frames);
             AVbinStream* tmp = avbin_open_stream(file, stream_index);
             if (tmp)
             {
@@ -649,7 +663,7 @@ int FFGrabber::doCapture()
     bool allDone = false;
     while (!avbin_read_next_packet(file, &packet))
     {
-        if (DEBUG_LEVEL > 0) FFprintf("AVbinPacket: (%ld: %d %ld)\n", packet.timestamp, packet.stream_index, packet.size);
+        if (DEBUG_LEVEL > 0) FFprintf("AVbinPacket: (%lld: %d %ld)\n", packet.timestamp, packet.stream_index, packet.size);
 
         if ((tmp = streams.find(packet.stream_index)) != streams.end())
         {
@@ -668,13 +682,14 @@ int FFGrabber::doCapture()
 #ifdef MATLAB_MEX_FILE
             if (!G->isAudio) runMatlabCommand(G);
 #endif
+            av_packet_unref(packet.packet);
         }
 
         if (tryseeking && needseek)
         {
             if (stopTime && startTime > 0) {
-                    if (DEBUG_LEVEL > 0) FFprintf("try seeking to %lf\n",startTime);
-                    av_seek_frame(file->format_context, -1, (AVbinTimestamp)(startTime*1000*1000), AVSEEK_FLAG_BACKWARD);
+                if (DEBUG_LEVEL > 0) FFprintf("try seeking to %lf\n", startTime);
+                av_seek_frame(file->format_context, -1, (AVbinTimestamp)(startTime*1000*1000), AVSEEK_FLAG_BACKWARD);
             }
             needseek = 0;
         }
@@ -874,14 +889,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         free(data);
         if (nlhs >= 2) {plhs[1] = mxCreateDoubleMatrix(1,1,mxREAL); mxGetPr(plhs[1])[0] = time; }
     } else if (!strcmp("setFrames",cmd)) {
-        if (DEBUG_LEVEL > 0) FFprintf("Calling setFrames");
         if (nrhs < 2 || !mxIsDouble(prhs[1])) mexErrMsgTxt("setFrames: second parameter must be the frame numbers (as doubles)");
         if (nlhs > 0) mexErrMsgTxt("setFrames: has no outputs");
         int nrFrames = mxGetN(prhs[1]) * mxGetM(prhs[1]);
         unsigned int* frameNrs = new unsigned int[nrFrames];
         if (!frameNrs) mexErrMsgTxt("setFrames: out of memory");
         double* data = mxGetPr(prhs[1]);
-        for (int i=0; i<nrFrames; i++) frameNrs[i] = (unsigned int)data[i];
+        for (int i=0; i < nrFrames; i++) frameNrs[i] = (unsigned int)data[i];
 
         FFG.setFrames(frameNrs, nrFrames);
 
@@ -922,7 +936,7 @@ int main(int argc, char** argv)
 {
     FFGrabber FFG;
     printf("%s\n",argv[1]);
-    FFG.build(argv[1],false,false,true);
+    FFG.build(argv[1],false,true,true);
     FFG.doCapture();
     int nrVideo, nrAudio;
     FFG.getCaptureInfo(&nrVideo, &nrAudio);

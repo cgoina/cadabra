@@ -1,6 +1,7 @@
 default: qtrak_preprocess qtrak_cluster analysis gVision
 
-CC=clang++
+CPP=clang++
+CC=clang
 LIBAV_INSTALL=../libav-build
 CFLAGS += -arch x86_64 -I${LIBAV_INSTALL}/include
 LDFLAGS += -dylib \
@@ -33,12 +34,36 @@ src/QTRAK/qtrak_common/fhistc.mexmaci64: src/QTRAK/qtrak_common/fhistc.c
 	-v
 
 bin/avbin.o: src/QTRAK/qtrak_common/avbin.h src/QTRAK/qtrak_common/avbin.c
-	${CC} ${CFLAGS} \
+	${CPP} ${CFLAGS} \
 	-c src/QTRAK/qtrak_common/avbin.c \
 	-o $@
 
 bin/libavbin.dylib: bin/avbin.o
 	$(LD) $(LDFLAGS) -o $@ $< $(STATIC_LIBS) $(LIBS)
+
+bin/FFGrab: src/QTRAK/qtrak_common/FFGrab.cpp bin/libavbin.dylib
+	${CPP} \
+	-I${LIBAV_INSTALL}/include \
+	-DTEST_FFGRAB \
+	src/QTRAK/qtrak_common/FFGrab.cpp \
+	-Lbin -lavbin \
+	-o $@ 
+
+bin/tutorial.o: src/tutorial.c
+	${CPP} ${CFLAGS} \
+	-c $< \
+	-o $@ 
+
+bin/tutorial: bin/tutorial.o
+	${LD} \
+	$< \
+	-arch x86_64 \
+	${STATIC_LIBS} \
+	$(LIBS) \
+        -framework CoreFoundation \
+        -framework CoreVideo \
+        -framework VideoDecodeAcceleration \
+	-o $@ 
 
 src/QTRAK/qtrak_common/FFGrab.mexmaci64: src/QTRAK/qtrak_common/FFGrab.cpp bin/libavbin.dylib
 	${MATLAB_ROOT}/bin/mex \
@@ -98,6 +123,7 @@ gVision: bin src/gVision/gVision.m
 	-a ${MATLAB_SUPPORT_PACKAGES}/genericvideo/adaptor/maci64/mwmacvideoimaq.dylib
 
 clean_mex:
+	-rm -f bin/tutorial.o bin/tutorial bin/FFGrab
 	-rm -f bin/avbin.o bin/libavbin.dylib
 	-rm -f src/QTRAK/qtrak_common/fhistc.mexmaci64
 	-rm -f src/QTRAK/qtrak_common/FFGrab.mexmaci64 bin/avbin.o

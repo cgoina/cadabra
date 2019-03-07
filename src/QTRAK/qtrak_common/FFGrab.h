@@ -21,6 +21,7 @@ public:
         done = false;
         this->rate = rate;
         startTime = 0;
+        nrFramesTotal = isAudio ? 0 : info.video.nb_frames;
         stopTime = 0;
         this->isAudio = isAudio;
         this->info = info;
@@ -38,6 +39,7 @@ public:
     AVbinStream* stream;
     AVbinStreamInfo info;
     int64_t start_time;
+    int64_t nrFramesTotal;
 
     vector<uint8_t*> frames;
     vector<unsigned int> frameBytes;
