@@ -1,6 +1,10 @@
 #include "avbin.h"
 
-#define Logprintf(...) printf(__VA_ARGS__)
+#ifndef DEBUG_LEVEL
+#define DEBUG_LEVEL 0
+#endif
+
+#define Logprintf(...) {if (DEBUG_LEVEL > 0) printf(__VA_ARGS__);}
 
 static int32_t avbin_thread_count = 1;
 

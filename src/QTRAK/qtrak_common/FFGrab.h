@@ -1,7 +1,9 @@
 #ifndef FFGRAB_H
 #define FFGRAB_H
 
-#define DEBUG_LEVEL 48
+#ifndef DEBUG_LEVEL
+#define DEBUG_LEVEL 0
+#endif
 
 #include "avbin.h"
 

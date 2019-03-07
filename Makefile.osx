@@ -2,7 +2,7 @@ default: qtrak_preprocess qtrak_cluster analysis gVision
 
 CPP=clang++
 CC=clang
-LIBAV_INSTALL=../libav-build
+LIBAV_INSTALL=build
 CFLAGS += -arch x86_64 -I${LIBAV_INSTALL}/include
 LDFLAGS += -dylib \
            -arch x86_64 \
