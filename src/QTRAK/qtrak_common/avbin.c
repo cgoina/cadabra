@@ -321,14 +321,40 @@ int32_t avbin_decode_audio(AVbinStream* stream, AVbinPacket* packet)
     return bytes_used;
 }
 
+void saveFrame(uint8_t* output_buffer, int linesize, int width, int height);
+
 int32_t avbin_decode_video_frame(AVbinStream *stream, AVbinPacket* packet, 
                                  uint8_t* output_buffer, int output_size)
 {
+    AVFrame* pFrameRGB = av_frame_alloc();
+    if (pFrameRGB == NULL)
+    {
+        // Could not allocate frame
+        Logprintf("avbin_decode_video_frame: error allocating the RGB frame\n");
+        return -1;
+    }
+    int nbytes = av_image_fill_arrays(
+        pFrameRGB->data,
+        pFrameRGB->linesize,
+        output_buffer,
+        AV_PIX_FMT_RGB24,
+        stream->codec_context->width,
+        stream->codec_context->height,
+        32
+    );
+    Logprintf("avbin_decode_video_frame: av_image_fill_arrays linesize=%d, width=%d, height=%d nbytes=%d, output size=%d\n",
+              pFrameRGB->linesize[0], stream->codec_context->width, stream->codec_context->height, nbytes, output_size);
+    if (nbytes < 0)
+    {
+        return -1;
+    }
 	int32_t ret = avcodec_send_packet(stream->codec_context, packet->packet);
     if (ret < 0)
     {
         // could not send packet for decoding
         Logprintf("avcodec_send_packet could not send packet for decoding: %d\n", ret);
+        av_frame_free(&pFrameRGB);
+        av_free(pFrameRGB);
         av_packet_unref(packet->packet);
         return -1;
     } else {
@@ -350,16 +376,67 @@ int32_t avbin_decode_video_frame(AVbinStream *stream, AVbinPacket* packet,
         } else {
             // successful decoding => convert the image from its native format to RGB
             Logprintf("avcodec_receive_frame successfully decoded packet result=%d!\n", ret);
-            ret = av_image_copy_to_buffer(output_buffer, output_size,
-                                          (const uint8_t * const *)stream->frame->data,
-                                          (const int *)stream->frame->linesize, 
-                                          AV_PIX_FMT_RGB24,
-                                          stream->frame->width, stream->frame->height,
-                                          1);
+            sws_scale(stream->sws_ctx,
+                      (uint8_t const * const *)stream->frame->data,
+                      stream->frame->linesize,
+                      0,
+                      stream->codec_context->height,
+                      pFrameRGB->data,
+                      pFrameRGB->linesize
+            );
+
+            // align the line size to be <frame_width> * <bytes_per_pixels> 
+            for (int y = 0; y < stream->frame->height; y++)
+            {
+                memcpy(output_buffer + y * stream->frame->width * 3, // in this case we have 3 bytes per pixel
+                       output_buffer + y * pFrameRGB->linesize[0],
+                       stream->frame->width * 3);
+            }
+
+            saveFrame(output_buffer, stream->frame->width * 3, stream->frame->width, stream->frame->height);
             Logprintf("av_image_copy_to_buffer -> %d!\n", ret);
             break;
         }
     }
+    av_frame_free(&pFrameRGB);
+    av_free(pFrameRGB);
     av_packet_unref(packet->packet);
     return ret;
+}
+
+void saveFrame(uint8_t* output_buffer, int linesize, int width, int height)
+{
+    FILE * pFile;
+    char szFilename[32];
+
+    /**
+     * We do a bit of standard file opening, etc., and then write the RGB data.
+     * We write the file one line at a time. A PPM file is simply a file that
+     * has RGB information laid out in a long string. If you know HTML colors,
+     * it would be like laying out the color of each pixel end to end like
+     * #ff0000#ff0000.... would be a red screen. (It's stored in binary and
+     * without the separator, but you get the idea.) The header indicated how
+     * wide and tall the image is, and the max size of the RGB values.
+     */
+
+    // Open file
+    sprintf(szFilename, "frame.ppm");
+    pFile = fopen(szFilename, "wb");
+    if (pFile == NULL)
+    {
+        return;
+    }
+
+    // Write header
+    fprintf(pFile, "P6\n%d %d\n255\n", width, height);
+
+    // Write pixel data
+    for (int y = 0; y < height; y++)
+    {
+        fwrite(output_buffer + y * linesize, 1, width * 3, pFile);
+    }
+
+    // Close file
+    fclose(pFile);
+
 }
