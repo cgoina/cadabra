@@ -1,5 +1,9 @@
 default: qtrak_preprocess qtrak_cluster analysis
 
+CC=gcc
+CPP=g++
+LIBAV_INSTALL=build
+CFLAGS += -arch x86_64 -I${LIBAV_INSTALL}/include
 MATLAB_ROOT=/misc/local/matlab-2018b
 
 STATIC_LIBS = ${LIBAV_INSTALL}/lib/libavcodec.a \
