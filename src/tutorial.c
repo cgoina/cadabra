@@ -100,7 +100,6 @@ int main(int argc, char * argv[])
     // The stream's information about the codec is in what we call the
     // "codec context." This contains all the information about the codec that
     // the stream is using
-    AVCodecContext * pCodecCtxOrig = NULL;
     AVCodecContext * pCodecCtx = NULL;
 
     // Find the first video stream
@@ -147,20 +146,6 @@ int main(int argc, char * argv[])
         return -1;
     }
 
-    pCodecCtxOrig = avcodec_alloc_context3(pCodec); // [7]
-    ret = avcodec_parameters_to_context(pCodecCtxOrig, pFormatCtx->streams[videoStream]->codecpar);
-
-    /**
-     * Note that we must not use the AVCodecContext from the video stream
-     * directly! So we have to use avcodec_copy_context() to copy the
-     * context to a new location (after allocating memory for it, of
-     * course).
-     */
-
-    // Copy context
-    // avcodec_copy_context deprecation
-    // http://ffmpeg.org/pipermail/libav-user/2017-September/010615.html
-    //ret = avcodec_copy_context(pCodecCtx, pCodecCtxOrig);
     pCodecCtx = avcodec_alloc_context3(pCodec); // [7]
     ret = avcodec_parameters_to_context(pCodecCtx, pFormatCtx->streams[videoStream]->codecpar);
     if (ret != 0)
@@ -338,6 +323,7 @@ int main(int argc, char * argv[])
             while (ret >= 0)
             {
                 ret = avcodec_receive_frame(pCodecCtx, pFrame);   // [15]
+		        printf("avcodec_receive_frame result=%d!\n", ret);       
 
                 if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
                 {
@@ -372,7 +358,7 @@ int main(int argc, char * argv[])
 
                     // print log information
                     printf(
-                        "Frame %c (%d) pts %d dts %d key_frame %d [coded_picture_number %d, display_picture_number %d, %dx%d]\n",
+                        "Frame %c (%d) pts %ld dts %ld key_frame %d [coded_picture_number %d, display_picture_number %d, %dx%d]\n",
                         av_get_picture_type_char(pFrame->pict_type),
                         pCodecCtx->frame_number,
                         pFrameRGB->pts,
@@ -419,7 +405,6 @@ int main(int argc, char * argv[])
 
     // Close the codecs
     avcodec_close(pCodecCtx);
-    avcodec_close(pCodecCtxOrig);
 
     // Close the video file
     avformat_close_input(&pFormatCtx);

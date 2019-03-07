@@ -228,12 +228,6 @@ typedef struct _AVbinStreamInfo {
  */
 typedef struct _AVbinPacket {
     /**
-     * Size of this structure, in bytes.  This must be filled in by the
-     * application before passing to AVbin.
-     */
-    size_t structure_size;
-
-    /**
      * The time at which this packet is to be played.  This can be used
      * to synchronise audio and video data.
      */
@@ -244,9 +238,7 @@ typedef struct _AVbinPacket {
      */
     uint32_t stream_index;
 
-    AVPacket *packet;
-    uint8_t *data;
-    size_t size;
+    AVPacket* packet;
 } AVbinPacket;
 
 typedef struct _AVbinStream {
@@ -265,11 +257,13 @@ AVbinFile* avbin_open_filename(const char* filename);
 AVbinFile* avbin_open_filename_with_format(const char* filename, char* format);
 void avbin_close_file(AVbinFile* file);
 AVbinResult avbin_file_info(AVbinFile *file, AVbinFileInfo *info);
+void avbin_dump(AVbinFile* file, const char* filename);
 AVbinResult avbin_stream_info(AVbinFile* file, int32_t stream_index, AVbinStreamInfo* info);
 AVbinStream* avbin_open_stream(AVbinFile *file, int32_t stream_index);
 void avbin_close_stream(AVbinStream *stream);
 int32_t avbin_read_next_packet(AVbinFile* file, AVbinPacket* packet);
 int32_t avbin_decode_audio(AVbinStream* stream, AVbinPacket* packet);
-int32_t avbin_decode_video_frame(AVbinStream* stream, AVbinPacket* packet, uint8_t* output_buffer);
+int32_t avbin_decode_video_frame(AVbinStream* stream, AVbinPacket* packet,
+                                 uint8_t* output_buffer, int output_size);
 
 #endif // end AVBIN_H
