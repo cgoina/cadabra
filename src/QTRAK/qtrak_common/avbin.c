@@ -1,5 +1,7 @@
 #include "avbin.h"
 
+#define Logprintf(...) printf(__VA_ARGS__)
+
 static int32_t avbin_thread_count = 1;
 
 AVbinResult avbin_init()
@@ -129,29 +131,42 @@ AVbinResult avbin_stream_info(AVbinFile* file, int32_t stream_index, AVbinStream
 {
     AVCodec* pCodec = avcodec_find_decoder(file->format_context->streams[stream_index]->codecpar->codec_id);
     if (pCodec == NULL) {
+       Logprintf("No codec found for %d\n", file->format_context->streams[stream_index]->codecpar->codec_id);
     	// unsupported codec
     	return AVBIN_RESULT_ERROR;
     }
-    AVCodecContext* context = avcodec_alloc_context3(pCodec); // [7]
+    Logprintf("Found codec %s for %d\n", pCodec->name, file->format_context->streams[stream_index]->codecpar->codec_id);
+    AVCodecParameters* codec_params = file->format_context->streams[stream_index]->codecpar;
 
     /* Error if not large enough for version 1 */
     if (info->structure_size < sizeof *info)
         return AVBIN_RESULT_ERROR;
 
-    switch (context->codec_type)
+    switch (codec_params->codec_type)
     {
         case AVMEDIA_TYPE_VIDEO:
             info->type = AVBIN_STREAM_TYPE_VIDEO;
-            info->video.width = context->width;
-            info->video.height = context->height;
-            info->video.sample_aspect_num = context->sample_aspect_ratio.num;
-            info->video.sample_aspect_den = context->sample_aspect_ratio.den;
+            info->video.width = codec_params->width;
+            info->video.height = codec_params->height;
+            info->video.nb_frames = file->format_context->streams[stream_index]->nb_frames;
+            AVRational sample_aspect_ratio; 
+            if ((codec_params->sample_aspect_ratio.num != 0 && codec_params->sample_aspect_ratio.den != 0) ||
+                codec_params->width == 0 || codec_params->height == 0)
+            {
+                sample_aspect_ratio = codec_params->sample_aspect_ratio;
+            }
+            else
+            {
+                sample_aspect_ratio = av_d2q((double)codec_params->height / (double)codec_params->width, 20);
+            }
+            info->video.sample_aspect_num = sample_aspect_ratio.num;
+            info->video.sample_aspect_den = sample_aspect_ratio.den;
             break;
         case AVMEDIA_TYPE_AUDIO:
             info->type = AVBIN_STREAM_TYPE_AUDIO;
-            info->audio.sample_rate = context->sample_rate;
-            info->audio.channels = context->channels;
-            switch (context->sample_fmt)
+            info->audio.sample_rate = codec_params->sample_rate;
+            info->audio.channels = codec_params->channels;
+            switch (codec_params->format)
             {
                 case AV_SAMPLE_FMT_U8:
                     info->audio.sample_format = AVBIN_SAMPLE_FORMAT_U8;
@@ -183,9 +198,6 @@ AVbinResult avbin_stream_info(AVbinFile* file, int32_t stream_index, AVbinStream
             info->type = AVBIN_STREAM_TYPE_UNKNOWN;
             break;
     }
-
- 	avcodec_free_context(&context);
-
     return AVBIN_RESULT_OK;
 }
 
@@ -198,18 +210,11 @@ AVbinStream *avbin_open_stream(AVbinFile *file, int32_t stream_index)
     AVCodec* codec = avcodec_find_decoder(file->format_context->streams[stream_index]->codecpar->codec_id);
     if (codec == NULL)
     {
+        Logprintf("No codec found for: %d\n", file->format_context->streams[stream_index]->codecpar->codec_id);
         // codec not found
         return NULL;
     }
-
-    /* The Libav api example does this (see libav/libavcodec-api-example.c).
-     * The only explanation is "we do not send complete frames".  I tried
-     * adding it, and there seemed to be no effect either way.  I'm going to
-     * leave it here commented out just in case we find the need to enable it
-     * in the future.
-     */
-    AVCodecContext* orig_codec_context = avcodec_alloc_context3(codec);
-    int ret = avcodec_parameters_to_context(orig_codec_context, file->format_context->streams[stream_index]->codecpar);
+    Logprintf("Found codec %s\n", codec->name);
 
     /**
      * Note that we must not use the AVCodecContext from the video stream
@@ -220,7 +225,7 @@ AVbinStream *avbin_open_stream(AVbinFile *file, int32_t stream_index)
 
     // Copy context
     AVCodecContext* codec_context = avcodec_alloc_context3(codec); // [7]
-    ret = avcodec_parameters_to_context(codec_context, file->format_context->streams[stream_index]->codecpar);
+    int ret = avcodec_parameters_to_context(codec_context, file->format_context->streams[stream_index]->codecpar);
     if (ret != 0)
     {
         // error copying context
@@ -250,7 +255,6 @@ AVbinStream *avbin_open_stream(AVbinFile *file, int32_t stream_index)
     }
     stream->format_context = file->format_context;
     stream->codec_context = codec_context;
-    stream->orig_codec_context = orig_codec_context;
     stream->type = codec_context->codec_type;
     stream->frame = frame;
     // initialize SWS context for software scaling
@@ -260,7 +264,7 @@ AVbinStream *avbin_open_stream(AVbinFile *file, int32_t stream_index)
         codec_context->pix_fmt,
         codec_context->width,
         codec_context->height,
-        AV_PIX_FMT_RGB24,   // sws_scale destination color scheme
+        AV_PIX_FMT_YUV420P,   // sws_scale destination color scheme
         SWS_BILINEAR,
         NULL,
         NULL,
@@ -273,8 +277,18 @@ AVbinStream *avbin_open_stream(AVbinFile *file, int32_t stream_index)
 void avbin_close_stream(AVbinStream *stream)
 {
     if (stream->frame)
+    {
+        // Free the YUV frame
         av_frame_free(&stream->frame);
+        av_free(stream->frame);
+    }
+
+    // Close the codec
     avcodec_close(stream->codec_context);
+
+    // Close the video file
+    avformat_close_input(&stream->format_context);
+
     free(stream);
 }
 
@@ -285,13 +299,16 @@ int32_t avbin_read_next_packet(AVbinFile* file, AVbinPacket* packet)
     if (av_read_frame(file->format_context, packet->packet) < 0)
         return AVBIN_RESULT_ERROR;
 
-    packet->timestamp = av_rescale_q(packet->packet->dts,
-        AV_TIME_BASE_Q,
-        file->format_context->streams[packet->packet->stream_index]->time_base);
+    packet->timestamp = av_rescale_q(
+        packet->packet->dts,
+        file->format_context->streams[packet->packet->stream_index]->time_base,
+        AV_TIME_BASE_Q
+    );
     packet->stream_index = packet->packet->stream_index;
     packet->data = packet->packet->data;
     packet->size = packet->packet->size;
 
+    av_packet_unref(packet->packet);
     return AVBIN_RESULT_OK;
 }
 
@@ -337,26 +354,30 @@ int32_t avbin_decode_video_frame(AVbinStream *stream, AVbinPacket* packet, uint8
         pFrameRGB->data,
         pFrameRGB->linesize,
         output_buffer,
-        AV_PIX_FMT_RGB24,
+        AV_PIX_FMT_YUV420P,
         stream->codec_context->width,
         stream->codec_context->height,
         32
     );
 
-	int ret = avcodec_send_packet(stream->codec_context, packet->packet);
+	int32_t ret = avcodec_send_packet(stream->codec_context, packet->packet);
     if (ret < 0)
     {
         // could not send packet for decoding
+        Logprintf("avcodec_send_packet could not send packet for decoding: %d\n", ret);
 	    av_frame_free(&pFrameRGB);
     	av_free(pFrameRGB);
-        return ret;
+        return -1;
+    } else {
+        Logprintf("avcodec_send_packet OK!\n");       
     }
     ret = avcodec_receive_frame(stream->codec_context, stream->frame);
+    Logprintf("avcodec_receive_frame result=%d!\n", ret);       
 
     if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
     {
         // EOF
-        ret = 0;
+        ret = -2;
     }
     else if (ret == 0)
     {
@@ -370,7 +391,9 @@ int32_t avbin_decode_video_frame(AVbinStream *stream, AVbinPacket* packet, uint8
 	              pFrameRGB->linesize
 	    );
 	    ret = stream->frame->linesize[0] * stream->codec_context->height * 3;
-	}
+	} else {
+        ret = -3;
+    }
     av_frame_free(&pFrameRGB);
     av_free(pFrameRGB);
     return ret;

@@ -19,6 +19,20 @@ extern "C" {
 typedef int64_t AVbinTimestamp;
 
 /**
+ * Threshold of logging verbosity.
+ */
+typedef enum _AVbinLogLevel {
+    AVBIN_LOG_QUIET = -8,
+    AVBIN_LOG_PANIC = 0,
+    AVBIN_LOG_FATAL = 8,
+    AVBIN_LOG_ERROR = 16,
+    AVBIN_LOG_WARNING = 24,
+    AVBIN_LOG_INFO = 32,
+    AVBIN_LOG_VERBOSE = 40,
+    AVBIN_LOG_DEBUG = 48
+} AVbinLogLevel;
+
+/**
  * Error-checked function result.
  */
 typedef enum _AVbinResult {
@@ -174,6 +188,7 @@ typedef struct _AVbinStreamInfo {
              */
             uint32_t frame_rate_num;
             uint32_t frame_rate_den;
+            int64_t nb_frames;
         } video;
 
         struct {
@@ -237,7 +252,6 @@ typedef struct _AVbinPacket {
 typedef struct _AVbinStream {
     int type;
     AVFormatContext *format_context;
-    AVCodecContext *orig_codec_context;
     AVCodecContext *codec_context;
     AVFrame *frame;
     struct SwsContext* sws_ctx;
