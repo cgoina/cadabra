@@ -57,7 +57,8 @@ bin:
 	"bin/$(@F).oomexw64" \
 	bin/c_mexapi_version.oomexw64 \
 	${MEX_LIBS} \
-	-Wl,libs/avbin64.dll \
+	-Wl,libs//libavbin64.exp \
+	-Bdynamic -Llibs -Wl,libs/avbin64.dll \
 	-o "$@"
 
 mex_compile: src/QTRAK/qtrak_common/fhistc.mexw64 \
@@ -74,8 +75,7 @@ qtrak_preprocess: bin src/QTRAK/qtrak_preprocess/qtrak_preprocess.m \
 	-a src/QTRAK/qtrak_common/FFGrab.mexw64 \
 	-a src/QTRAK/qtrak_common/fhistc.mexw64 \
 	-a src/QTRAK/qtrak_common/ProcessFrameMeanWin.m \
-	-a src/QTRAK/qtrak_common/ProcessFrameCapWin.m \
-	-T link:exe
+	-a src/QTRAK/qtrak_common/ProcessFrameCapWin.m
 
 qtrak_cluster: bin src/QTRAK/qtrak_cluster/qtrak_cluster.m \
 	       mex_compile
