@@ -3,6 +3,16 @@ default: qtrak_preprocess qtrak_cluster analysis gVision
 MW_MINGW64_LOC=/C/msys64/mingw64
 CC=${MW_MINGW64_LOC}/bin/gcc
 CPP="${MW_MINGW64_LOC}/bin/g++"
+LIBAV_INSTALL=build
+CFLAGS += -arch x86_64 -I${LIBAV_INSTALL}/include
+
+STATIC_LIBS = ${LIBAV_INSTALL}/lib/libavcodec.a \
+              ${LIBAV_INSTALL}/lib/libavfilter.a \
+              ${LIBAV_INSTALL}/lib/libavformat.a \
+              ${LIBAV_INSTALL}/lib/libavresample.a \
+              ${LIBAV_INSTALL}/lib/libavutil.a \
+              ${LIBAV_INSTALL}/lib/libswscale.a \
+
 MATLAB_ROOT=/C/Program Files/MATLAB/R2018b
 MCC=${MATLAB_ROOT}/bin/mcc.bat
 MATLAB_SUPPORT_PACKAGES=/C/ProgramData/MATLAB/SupportPackages/R2018b/toolbox/imaq/supportpackages
@@ -28,6 +38,14 @@ MEX_LIBS=-L"${MATLAB_ROOT}/extern/lib/win64/mingw64" \
 
 bin:
 	mkdir -p bin
+
+bin/avbin.o: bin src/QTRAK/qtrak_common/avbin.h src/QTRAK/qtrak_common/avbin.c
+	${CC} ${CFLAGS} \
+	-c src/QTRAK/qtrak_common/avbin.c \
+	-o $@
+
+bin/avbin.dll: bin/avbin.o
+	${LD} ${LDFLAGS} -o $@ $< ${STATIC_LIBS} ${LIBS}
 
 %.mexw64: %.c bin
 	echo "$<" -> "$@"

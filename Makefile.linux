@@ -2,6 +2,13 @@ default: qtrak_preprocess qtrak_cluster analysis
 
 MATLAB_ROOT=/misc/local/matlab-2018b
 
+STATIC_LIBS = ${LIBAV_INSTALL}/lib/libavcodec.a \
+              ${LIBAV_INSTALL}/lib/libavfilter.a \
+              ${LIBAV_INSTALL}/lib/libavformat.a \
+              ${LIBAV_INSTALL}/lib/libavresample.a \
+              ${LIBAV_INSTALL}/lib/libavutil.a \
+              ${LIBAV_INSTALL}/lib/libswscale.a \
+
 bin:
 	mkdir -p bin
 

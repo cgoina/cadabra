@@ -5,8 +5,16 @@
 #define DEBUG_LEVEL 0
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "avbin.h"
 
+
+#ifdef __cplusplus
+}
+#endif
 class Grabber
 {
 public:
