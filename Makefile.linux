@@ -1,10 +1,16 @@
 default: qtrak_preprocess qtrak_cluster analysis
 
-CC=gcc
-CPP=g++
-LIBAV_INSTALL=build
-CFLAGS += -arch x86_64 -I${LIBAV_INSTALL}/include
 MATLAB_ROOT=/misc/local/matlab-2018b
+
+CC=/misc/local/gcc-8.2.0/bin/gcc
+CPP=/misc/local/gcc-8.2.0/bin/g++
+LD=ld
+LIBAV_INSTALL=build
+CFLAGS += -fPIC \
+       	  -DDEBUG_LEVEL=48 \
+          -I${LIBAV_INSTALL}/include
+
+LDFLAGS += -shared -Bsymbolic -zmuldefs
 
 STATIC_LIBS = ${LIBAV_INSTALL}/lib/libavcodec.a \
               ${LIBAV_INSTALL}/lib/libavfilter.a \
@@ -13,12 +19,31 @@ STATIC_LIBS = ${LIBAV_INSTALL}/lib/libavcodec.a \
               ${LIBAV_INSTALL}/lib/libavutil.a \
               ${LIBAV_INSTALL}/lib/libswscale.a \
 
+LIBS = -lz -lbz2 -lm -lpthread
+
 bin:
 	mkdir -p bin
 
 bin/avbin.o: bin src/QTRAK/qtrak_common/avbin.h src/QTRAK/qtrak_common/avbin.c
-        ${CC} ${CFLAGS} \
+	${CC} ${CFLAGS} \
         -c src/QTRAK/qtrak_common/avbin.c \
+        -o $@
+
+bin/libavbin.so: bin/avbin.o
+	${LD} ${LDFLAGS} \
+	-o $@ \
+	$< \
+	-whole-archive \
+	${STATIC_LIBS} \
+	-no-whole-archive \
+	${LIBS}
+
+bin/FFGrab: src/QTRAK/qtrak_common/FFGrab.cpp bin/libavbin.so
+	${CPP} \
+        -I${LIBAV_INSTALL}/include \
+        -DTEST_FFGRAB \
+        src/QTRAK/qtrak_common/FFGrab.cpp \
+        -Lbin -lavbin \
         -o $@
 
 src/QTRAK/qtrak_common/fhistc.mexa64: src/QTRAK/qtrak_common/fhistc.c
@@ -29,18 +54,17 @@ src/QTRAK/qtrak_common/fhistc.mexa64: src/QTRAK/qtrak_common/fhistc.c
 
 src/QTRAK/qtrak_common/FFGrab.mexa64: src/QTRAK/qtrak_common/FFGrab.cpp
 	${MATLAB_ROOT}/bin/mex \
-	-Iinclude \
-	-Iinclude/libav \
+	-I${LIBAV_INSTALL}/include \
 	src/QTRAK/qtrak_common/FFGrab.cpp \
 	-outdir src/QTRAK/qtrak_common \
-	-lavbin-x86_64 -Llibs \
+	-Lbin -lavbin \
 	-v
 
 mex_compile: src/QTRAK/qtrak_common/fhistc.mexa64 \
              src/QTRAK/qtrak_common/FFGrab.mexa64
 
 qtrak_preprocess: bin src/QTRAK/qtrak_preprocess/qtrak_preprocess.m \
-		  mex_compile
+	mex_compile
 	${MATLAB_ROOT}/bin/mcc \
 	-v \
         -m qtrak_preprocess \
@@ -76,9 +100,10 @@ analysis: bin src/ANALYSIS/analysis.m
 	cp src/ANALYSIS/*.mat bin
 
 clean_mex:
+	-rm -f bin/tutorial.o bin/tutorial bin/FFGrab
+	-rm -f bin/avbin.o bin/libavbin.dylib
 	-rm -f src/QTRAK/qtrak_common/fhistc.mexa64
 	-rm -f src/QTRAK/qtrak_common/FFGrab.mexa64
 
 clean:
 	-rm -rf bin
-
