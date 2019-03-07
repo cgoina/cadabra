@@ -5,6 +5,11 @@ MATLAB_ROOT=/misc/local/matlab-2018b
 bin:
 	mkdir -p bin
 
+bin/avbin.o: bin src/QTRAK/qtrak_common/avbin.h src/QTRAK/qtrak_common/avbin.c
+        ${CC} ${CFLAGS} \
+        -c src/QTRAK/qtrak_common/avbin.c \
+        -o $@
+
 src/QTRAK/qtrak_common/fhistc.mexa64: src/QTRAK/qtrak_common/fhistc.c
 	${MATLAB_ROOT}/bin/mex \
 	src/QTRAK/qtrak_common/fhistc.c \
@@ -17,7 +22,7 @@ src/QTRAK/qtrak_common/FFGrab.mexa64: src/QTRAK/qtrak_common/FFGrab.cpp
 	-Iinclude/libav \
 	src/QTRAK/qtrak_common/FFGrab.cpp \
 	-outdir src/QTRAK/qtrak_common \
-	-Llibs -lavbin-x86_64 \
+	-lavbin-x86_64 -Llibs \
 	-v
 
 mex_compile: src/QTRAK/qtrak_common/fhistc.mexa64 \
