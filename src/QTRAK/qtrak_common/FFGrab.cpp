@@ -61,7 +61,7 @@ int Grabber::Grab(AVbinPacket *packet)
     int offset = 0, len = 0;
     double timestamp = (packet->timestamp - start_time) / 1000.0 / 1000.0;
     if (DEBUG_LEVEL > 0) 
-        FFprintf("frameNr: %d,  packetNr: %d, start time: %lld, packet ts:%lld, ts: %lf, stop time: %lf\n", 
+        FFprintf("Grab frameNr: %d,  packetNr: %d, start time: %lld, packet ts:%lld, ts: %lf, stop time: %lf\n", 
                  frameNr, packetNr, start_time, packet->timestamp, timestamp, stopTime);
 
     // either no frames are specified (capture all), or we have time specified
@@ -82,7 +82,7 @@ int Grabber::Grab(AVbinPacket *packet)
         } else {
             done = stopTime <= timestamp;
             len = (startTime <= timestamp) ? 0x7FFFFFFF : 0;
-            if (DEBUG_LEVEL) FFprintf("startTime: %lf, stopTime: %lf, current: %lf, done: %d, len: %d\n",startTime,stopTime,timestamp,done,len);
+            if (DEBUG_LEVEL) FFprintf("startTime: %lf, stopTime: %lf, current: %lf, done: %d, len: %d\n", startTime, stopTime, timestamp, done, len);
         }
     } else {
         // capture everything... video or audio
@@ -97,7 +97,6 @@ int Grabber::Grab(AVbinPacket *packet)
     {
         return grabVideoPacket(packet, timestamp, len);
     }
-    return 0;
 }
 
 int Grabber::grabAudioPacket(AVbinPacket *packet, double from_timestamp, int capture_length)
@@ -128,7 +127,8 @@ int Grabber::grabVideoPacket(AVbinPacket *packet, double from_timestamp, int cap
             skip = true;
         }
     }
-    if ((trySeeking && skip && packetNr < startDecodingAt && packetNr != 1) || done) return 0;
+    if ((trySeeking && skip && packetNr < startDecodingAt && packetNr != 1) || done)
+        return 0;
 
     // allocate buffer for the 
     int numBytes = av_image_get_buffer_size(AV_PIX_FMT_RGB24, 
@@ -138,16 +138,19 @@ int Grabber::grabVideoPacket(AVbinPacket *packet, double from_timestamp, int cap
     uint8_t* videobuf = (uint8_t *) av_malloc(numBytes * sizeof(uint8_t));
 
     if (videobuf == NULL) {
-        FFprintf("Error allocating %d bytes for videobuf\n", numBytes);
+        FFprintf("grabVideoPacket: error allocating %d bytes for videobuf\n", numBytes);
         return 2;
     }
-    if (DEBUG_LEVEL > 0) FFprintf("avbin_decode_video packet size = %lu, buffer -> %p\n", packet->size, videobuf);
 
-    int nBytesRead = avbin_decode_video_frame(stream, packet, videobuf);
+    if (DEBUG_LEVEL > 0)
+        FFprintf("grabVideoPacket: allocated %d bytes for videobuf\n", numBytes);
+
+    int nBytesRead = avbin_decode_video_frame(stream, packet, videobuf, 
+                                              stream->codec_context->width * stream->codec_context->height * 3);
     if (DEBUG_LEVEL > 0) FFprintf("avbin_decode_video_frame nBytesRead = %d\n", nBytesRead);
     if (nBytesRead < 0)
     {
-        FFprintf("avbin_decode_video_frame result=%d!\n", nBytesRead);
+        FFprintf("grabVideoPacket: avbin_decode_video_frame result=%d!\n", nBytesRead);
         // silently ignore decode errors
         frameNr--;
         av_free(videobuf);
@@ -164,10 +167,9 @@ int Grabber::grabVideoPacket(AVbinPacket *packet, double from_timestamp, int cap
         av_free(videobuf);
         return 0;
     } else {
-        size_t buflen = min(capture_length, numBytes);
-        if (DEBUG_LEVEL > 0) FFprintf("Push videobuf %f: %lu bytes to %p\n", from_timestamp, buflen, videobuf);
+        if (DEBUG_LEVEL > 0) FFprintf("Push videobuf %f: %d bytes to %p\n", from_timestamp, nBytesRead, videobuf);
         frames.push_back(videobuf);
-        frameBytes.push_back(buflen);
+        frameBytes.push_back(nBytesRead);
         frameTimes.push_back(from_timestamp);
     }
     return 0;
@@ -567,7 +569,8 @@ int FFGrabber::build(const char* filename, bool disableVideo, bool disableAudio,
         if (DEBUG_LEVEL > 0) FFprintf("Error in avbin_open_filename %s\n", filename);
         return -4;
     }
-
+    // dump file format info
+    if (DEBUG_LEVEL > 0) avbin_dump(file, filename);
     //detect if the file has changed
     struct stat fstat;
     stat(filename, &fstat);
@@ -657,17 +660,21 @@ int FFGrabber::doCapture()
         // error allocating the packet
         return AVBIN_RESULT_ERROR;
     }
-    packet.structure_size = sizeof(packet);
     streammap::iterator tmp;
-    int needseek=1;
+    int needseek = 1;
     bool allDone = false;
     while (!avbin_read_next_packet(file, &packet))
     {
-        if (DEBUG_LEVEL > 0) FFprintf("AVbinPacket: (%lld: %d %ld)\n", packet.timestamp, packet.stream_index, packet.size);
+        if (DEBUG_LEVEL > 0)
+            FFprintf("doCapture: packet timestamp: %lld, stream index: %d, packet size: %d, packet data: %p \n", 
+                    packet.timestamp, packet.stream_index, 
+                    packet.packet->size, packet.packet->data);
 
         if ((tmp = streams.find(packet.stream_index)) != streams.end())
         {
             Grabber* G = tmp->second;
+            if (DEBUG_LEVEL > 0)
+                FFprintf("doCapture: found grabber: %p, done: %d\n", G, G->done);
             G->Grab(&packet);
 
             if (G->done)
@@ -940,6 +947,7 @@ int main(int argc, char** argv)
     FFG.doCapture();
     int nrVideo, nrAudio;
     FFG.getCaptureInfo(&nrVideo, &nrAudio);
+    FFG.cleanUp();
 
     printf("there are %d video streams, and %d audio.\n",nrVideo,nrAudio);
 }
