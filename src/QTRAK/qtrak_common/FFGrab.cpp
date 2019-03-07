@@ -145,8 +145,7 @@ int Grabber::grabVideoPacket(AVbinPacket *packet, double from_timestamp, int cap
     if (DEBUG_LEVEL > 0)
         FFprintf("grabVideoPacket: allocated %d bytes for videobuf\n", numBytes);
 
-    int nBytesRead = avbin_decode_video_frame(stream, packet, videobuf, 
-                                              stream->codec_context->width * stream->codec_context->height * 3);
+    int nBytesRead = avbin_decode_video_frame(stream, packet, videobuf, numBytes);
     if (DEBUG_LEVEL > 0) FFprintf("avbin_decode_video_frame nBytesRead = %d\n", nBytesRead);
     if (nBytesRead < 0)
     {
