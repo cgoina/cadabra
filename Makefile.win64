@@ -1,17 +1,48 @@
 default: qtrak_preprocess qtrak_cluster analysis gVision
 
-MW_MINGW64_LOC=/C/msys64/mingw64
-CC=${MW_MINGW64_LOC}/bin/gcc
-CPP="${MW_MINGW64_LOC}/bin/g++"
-LIBAV_INSTALL=build
-CFLAGS += -arch x86_64 -I${LIBAV_INSTALL}/include
+MSYS64_DIR=/C/msys64
+MINGW64_DIR=/C/msys64/mingw64
+CC=${MINGW64_DIR}/bin/gcc
+CPP="${MINGW64_DIR}/bin/g++"
+LD="${MINGW64_DIR}/bin/gcc"
 
-STATIC_LIBS = ${LIBAV_INSTALL}/lib/libavcodec.a \
-              ${LIBAV_INSTALL}/lib/libavfilter.a \
-              ${LIBAV_INSTALL}/lib/libavformat.a \
-              ${LIBAV_INSTALL}/lib/libavresample.a \
-              ${LIBAV_INSTALL}/lib/libavutil.a \
-              ${LIBAV_INSTALL}/lib/libswscale.a \
+LIBAV_INSTALL=build
+CFLAGS += -fPIC \
+       	  -DDEBUG_LEVEL=48 \
+          -I${LIBAV_INSTALL}/include
+
+LDFLAGS += -Wl,--arch=x86_64 \
+	   -shared \
+	   -Wl,--allow-multiple-definition
+
+LIBS = -L${MINGW64_DIR}/x86_64-w64-mingw32/lib \
+       -lcrtdll \
+       -lbz2 \
+       -lz \
+       -lm \
+       -lbcrypt \
+       -lole32 \
+       -lws2_32
+
+
+#       -lole32 \
+#       -lshell32 \
+#       -lpsapi \
+#       -ladvapi32 \
+#       -luser32 \
+#       -lavicap32 \
+#       -lkernel32 \
+#-lpthread \
+
+STATIC_LIBS = -L${LIBAV_INSTALL}/lib \
+	      -Bstatic \
+              -lavformat \
+	      -lavcodec \
+              -lavfilter \
+              -lavresample \
+              -lavutil \
+              -lswscale \
+	      -Bdynamic
 
 MATLAB_ROOT=/C/Program Files/MATLAB/R2018b
 MCC=${MATLAB_ROOT}/bin/mcc.bat
@@ -29,8 +60,7 @@ MEX_CFLAGS=-DMATLAB_DEFAULT_RELEASE=R2017b \
 
 MEX_CPPFLAGS=${MEX_CFLAGS} \
              -std=c++11 \
-	     -Iinclude \
-	     -Iinclude/libav
+	     -I${LIBAV_INSTALL}/include
 
 MEX_LIBS=-L"${MATLAB_ROOT}/extern/lib/win64/mingw64" \
 	 -llibmx -llibmex -llibmat -lm -llibmwlapack -llibmwblas \
@@ -45,7 +75,26 @@ bin/avbin.o: bin src/QTRAK/qtrak_common/avbin.h src/QTRAK/qtrak_common/avbin.c
 	-o $@
 
 bin/avbin.dll: bin/avbin.o
-	${LD} ${LDFLAGS} -o $@ $< ${STATIC_LIBS} ${LIBS}
+	${LD} \
+	${LDFLAGS} \
+	-o $@ \
+        -Wl,--out-implib=bin/libavbin.lib \
+        -Wl,--export-all-symbols \
+        -Wl,--enable-auto-import \
+	$< \
+	-Wl,-whole-archive \
+	${STATIC_LIBS} \
+	-Wl,-no-whole-archive \
+	${LIBS} \
+
+bin/FFGrab: src/QTRAK/qtrak_common/FFGrab.cpp
+	${CPP} \
+	-I${LIBAV_INSTALL}/include \
+	-DTEST_FFGRAB \
+	src/QTRAK/qtrak_common/FFGrab.cpp \
+	-Wl,bin/libavbin.lib \
+	-Bdynamic -Lbin -Wl,bin/avbin.dll \
+	-o $@ 
 
 %.mexw64: %.c bin
 	echo "$<" -> "$@"
@@ -62,7 +111,7 @@ bin/avbin.dll: bin/avbin.o
 	${MEX_LIBS} \
 	-o "$@"
 
-%.mexw64: %.cpp bin
+%.mexw64: %.cpp bin bin/avbin.dll
 	echo "$<" -> "$@"
 	${CPP} -c ${MEX_CPPFLAGS} "$<" -o "bin/$(@F).oomexw64"
 	${CPP} -c ${MEX_CPPFLAGS} \
@@ -75,8 +124,8 @@ bin/avbin.dll: bin/avbin.o
 	"bin/$(@F).oomexw64" \
 	bin/c_mexapi_version.oomexw64 \
 	${MEX_LIBS} \
-	-Wl,libs//libavbin64.exp \
-	-Bdynamic -Llibs -Wl,libs/avbin64.dll \
+	-Wl,bin/libavbin.lib \
+	-Bdynamic -Lbin -Wl,bin/avbin.dll \
 	-o "$@"
 
 mex_compile: src/QTRAK/qtrak_common/fhistc.mexw64 \
@@ -129,6 +178,7 @@ gVision: bin src/gVision/gVision.m
 	-a ${MATLAB_SUPPORT_PACKAGES}/pointgrey/adaptor/win64/mwpointgreyimaq.dll
 
 clean_mex:
+	-rm -f bin/avbin.o bin/libavbin.dll
 	-rm -f src/QTRAK/qtrak_common/fhistc.mexw64
 	-rm -f src/QTRAK/qtrak_common/FFGrab.mexw64
 

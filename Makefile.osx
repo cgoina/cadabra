@@ -43,7 +43,7 @@ bin/FFGrab: src/QTRAK/qtrak_common/FFGrab.cpp bin/libavbin.dylib
 	-DTEST_FFGRAB \
 	src/QTRAK/qtrak_common/FFGrab.cpp \
 	-Lbin -lavbin \
-	-o $@ 
+	-o $@
 
 bin/tutorial.o: src/tutorial.c bin
 	${CC} ${CFLAGS} \
@@ -125,7 +125,7 @@ gVision: bin src/gVision/gVision.m
 	-a ${MATLAB_SUPPORT_PACKAGES}/genericvideo/adaptor/maci64/mwmacvideoimaq.dylib
 
 clean_mex:
-	-rm -f bin/tutorial.o bin/tutorial bin/FFGrab
+	-rm -f bin/FFGrab
 	-rm -f bin/avbin.o bin/libavbin.dylib
 	-rm -f src/QTRAK/qtrak_common/fhistc.mexmaci64
 	-rm -f src/QTRAK/qtrak_common/FFGrab.mexmaci64 bin/avbin.o
