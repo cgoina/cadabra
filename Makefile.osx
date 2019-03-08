@@ -2,11 +2,13 @@ default: qtrak_preprocess qtrak_cluster analysis gVision
 
 MIN_OSX_VERSION=10.14
 
-CC=clang
-CPP=clang++
-LD=ld
-LIBAV_INSTALL=build
+CC = clang
+CPP = clang++
+LD = ld
+LIBAV_INSTALL = build
 CFLAGS += -arch x86_64 -I${LIBAV_INSTALL}/include
+AVBIN_LIBNAME = libavbin.dylib
+MCC = ${MATLAB_ROOT}/bin/mcc
 
 LDFLAGS += -dylib \
            -arch x86_64 \
@@ -31,35 +33,43 @@ MATLAB_SUPPORT_PACKAGES=${HOME}/Documents/MATLAB/SupportPackages/R2018b/toolbox/
 bin:
 	mkdir -p bin
 
-bin/avbin.o: bin src/QTRAK/qtrak_common/avbin.h src/QTRAK/qtrak_common/avbin.c
+bin/avbin.o: src/mex/avbin.c src/mex/avbin.h bin
 	${CC} ${CFLAGS} \
-	-c src/QTRAK/qtrak_common/avbin.c \
+	-c $< \
 	-o $@
 
-bin/libavbin.dylib: bin/avbin.o
+bin/${AVBIN_LIBNAME}: bin/avbin.o
 	${LD} ${LDFLAGS} \
 	-o $@ \
 	$< \
 	${STATIC_LIBS} ${LIBS}
 
-bin/FFGrab: src/QTRAK/qtrak_common/FFGrab.cpp bin/libavbin.dylib
-	${CPP} \
-	-I${LIBAV_INSTALL}/include \
+bin/FFGrab: src/mex/FFGrab.cpp bin/${AVBIN_LIBNAME}
+	${CPP} ${CFLAGS} \
 	-DTEST_FFGRAB \
-	src/QTRAK/qtrak_common/FFGrab.cpp \
-	-Lbin -lavbin \
-	-o $@
+	$< \
+	-o $@ \
+	-Lbin -lavbin
 
-src/QTRAK/qtrak_common/fhistc.mexmaci64: src/QTRAK/qtrak_common/fhistc.c
+bin/tutorial.o: src/mex/tutorial.c bin
+	${CC} ${CFLAGS} -c $< -o $@
+
+bin/tutorial: bin/tutorial.o bin/${AVBIN_LIBNAME}
+	${LD} \
+	$< \
+	-o $@ \
+	-Lbin -lavbin64
+
+src/QTRAK/qtrak_common/fhistc.mexmaci64: src/mex/fhistc.c
 	${MATLAB_ROOT}/bin/mex \
-	src/QTRAK/qtrak_common/fhistc.c \
+	src/mex/fhistc.c \
 	-outdir src/QTRAK/qtrak_common \
 	-v
 
-src/QTRAK/qtrak_common/FFGrab.mexmaci64: src/QTRAK/qtrak_common/FFGrab.cpp bin/libavbin.dylib
+src/QTRAK/qtrak_common/FFGrab.mexmaci64: src/mex/FFGrab.cpp bin/${AVBIN_LIBNAME}
 	${MATLAB_ROOT}/bin/mex \
 	-I${LIBAV_INSTALL}/include \
-	src/QTRAK/qtrak_common/FFGrab.cpp \
+	src/mex/FFGrab.cpp \
 	-Lbin -lavbin \
 	-outdir src/QTRAK/qtrak_common \
  	-v
@@ -69,7 +79,7 @@ mex_compile: src/QTRAK/qtrak_common/fhistc.mexmaci64 \
 
 qtrak_preprocess: bin src/QTRAK/qtrak_preprocess/qtrak_preprocess.m \
 		  mex_compile
-	${MATLAB_ROOT}/bin/mcc \
+	${MCC} \
 	-v \
         -m qtrak_preprocess \
 	-d bin \
@@ -82,7 +92,7 @@ qtrak_preprocess: bin src/QTRAK/qtrak_preprocess/qtrak_preprocess.m \
 
 qtrak_cluster: bin src/QTRAK/qtrak_cluster/qtrak_cluster.m \
 	       mex_compile
-	${MATLAB_ROOT}/bin/mcc \
+	${MCC} \
 	-v \
         -m qtrak_cluster \
 	-d bin \
@@ -95,7 +105,7 @@ qtrak_cluster: bin src/QTRAK/qtrak_cluster/qtrak_cluster.m \
 	cp src/QTRAK/qtrak_cluster/*.mat bin
 
 analysis: bin src/ANALYSIS/analysis.m
-	${MATLAB_ROOT}/bin/mcc \
+	${MCC} \
 	-v \
         -m analysis \
 	-d bin \
@@ -103,7 +113,7 @@ analysis: bin src/ANALYSIS/analysis.m
 	cp src/ANALYSIS/*.mat bin
 
 gVision: bin src/gVision/gVision.m
-	 ${MATLAB_ROOT}/bin/mcc \
+	 ${MCC} \
 	-v \
 	-m gVision \
 	-d bin \
@@ -115,7 +125,7 @@ gVision: bin src/gVision/gVision.m
 
 clean_mex:
 	-rm -f bin/FFGrab
-	-rm -f bin/avbin.o bin/libavbin.dylib
+	-rm -f bin/avbin.o bin/${AVBIN_LIBNAME}
 	-rm -f src/QTRAK/qtrak_common/fhistc.mexmaci64
 	-rm -f src/QTRAK/qtrak_common/FFGrab.mexmaci64
 
