@@ -25,19 +25,6 @@ SYSTEM_LIBS = -lbcrypt \
 	      -lws2_32 \
 	      -lole32
 
-#       -lm \
-#       -lbcrypt \
-#       -lole32 \
-#       -lws2_32 \
-#       -lkernel32
-#       -lshell32 \
-#       -lpsapi \
-#       -ladvapi32 \
-#       -luser32 \
-#       -lavicap32 \
-
-#-lpthread \
-
 STATIC_LIBS = -Wl,-whole-archive \
 	      -Wl,${LIBAV_INSTALL}/lib/libavformat.a \
 	      -Wl,${LIBAV_INSTALL}/lib/libavcodec.a \
@@ -65,6 +52,8 @@ MEX_CPPFLAGS=${MEX_CFLAGS} \
              -std=c++11 \
 	     -I${LIBAV_INSTALL}/include
 
+MEX_API_VERSION=${MATLAB_ROOT}/extern/version/c_mexapi_version.c
+
 MEX_LIBS=-L"${MATLAB_ROOT}/extern/lib/win64/mingw64" \
 	 -llibmx -llibmex -llibmat -lm -llibmwlapack -llibmwblas \
 	 -llibMatlabDataArray -llibMatlabEngine
@@ -74,18 +63,18 @@ bin:
 
 bin/avbin.o: src/mex/avbin.c src/mex/avbin.h bin
 	${CC} ${CFLAGS} \
-	-c $< \
-	-o $@
+	-c "$<" \
+	-o "$@"
 
 bin/${AVBIN_LIBNAME}: bin/avbin.o
 	${LD} \
 	${LDFLAGS} \
-	-o $@ \
+	-o "$@" \
         -Wl,--out-implib=bin/${AVBIN_STATIC_LIBNAME} \
         -Wl,--export-all-symbols \
         -Wl,--enable-auto-import \
 	-Wl,--whole-archive ${old_libs} \
-	$< \
+	"$<" \
 	${STATIC_LIBS} \
 	${LIBS} ${SYSTEM_LIBS}
 
@@ -93,62 +82,54 @@ bin/FFGrab.exe: src/mex/FFGrab.cpp bin/${AVBIN_LIBNAME}
 	${CPP} \
 	-I${LIBAV_INSTALL}/include \
 	-DTEST_FFGRAB \
-	$< \
-	-o $@ \
+	"$<" \
+	-o "$@" \
 	-Lbin -lavbin64
 
-bin/test.exe: src/mex/test.c bin
-	echo "$<" -> "$@"
-	${CPP} \
-	$< \
-	-o $@
-
 bin/tutorial.o: src/mex/tutorial.c bin
-	${CC} ${CFLAGS} \
-	-c $< \
-	-o $@ 
+	${CC} ${CFLAGS} -c "$<" -o "$@" 
 
 bin/tutorial: bin/tutorial.o bin/${AVBIN_LIBNAME}
 	${LD} \
-	$< \
-	-o $@ \
+	"$<" \
+	-o "$@" \
 	-Lbin -lavbin64
 
-src/QTRAK/qtrak_common/fhistc.mexw64: src/mex/fhistc.c bin
-	echo "$<" -> "$@"
-	${CC} -c ${MEX_CFLAGS} "$<" -o "bin/$(@F).omexw64"
-	${CC} -c ${MEX_CFLAGS} \
-	"${MATLAB_ROOT}/extern/version/c_mexapi_version.c" \
-	-o "bin/c_mexapi_version.omexw64"
+bin/c_mexapi_version.o: bin
+	${CC} ${MEX_CFLAGS} -c "${MEX_API_VERSION}" -o bin/c_mexapi_version.o
+
+bin/fhistc.o: src/mex/fhistc.c bin
+	${CC} ${MEX_CFLAGS} -c "$<" -o "$@"
+
+src/QTRAK/qtrak_common/fhistc.mexw64: bin/fhistc.o bin/c_mexapi_version.o
 	${CC} \
 	-m64 -Wl,--no-undefined \
 	-shared -static -s \
 	-Wl,"${MATLAB_ROOT}/extern/lib/win64/mingw64/exportsmexfileversion.def" \
-	"bin/$(@F).omexw64" \
-	bin/c_mexapi_version.omexw64 \
-	${MEX_LIBS} \
-	-o "$@"
+	-o "$@" \
+	bin/fhistc.o bin/c_mexapi_version.o \
+	${MEX_LIBS}
 
-src/QTRAK/qtrak_common/FFGrab.mexw64: src/mex/FFGrab.cpp bin/libavbin.dll
-	echo "$<" -> "$@"
-	${CPP} -c ${MEX_CPPFLAGS} "$<" -o "bin/$(@F).oomexw64"
-	${CPP} -c ${MEX_CPPFLAGS} \
-	"${MATLAB_ROOT}/extern/version/c_mexapi_version.c" \
-	-o "bin/c_mexapi_version.oomexw64"
+bin/FFGrab.o: src/mex/FFGrab.cpp bin
+	${CPP} -c ${MEX_CPPFLAGS} "$<" -o "$@"
+
+src/QTRAK/qtrak_common/FFGrab.mexw64: bin/c_mexapi_version.o \
+				      bin/FFGrab.o \
+				      bin/${AVBIN_LIBNAME}
 	${CPP} \
 	-m64 -Wl,--no-undefined \
 	-shared -static -s \
 	-Wl,"${MATLAB_ROOT}/extern/lib/win64/mingw64/exportsmexfileversion.def" \
-	"bin/$(@F).oomexw64" \
-	bin/c_mexapi_version.oomexw64 \
+	bin/FFGrab.o bin/c_mexapi_version.o \
 	${MEX_LIBS} \
-	-Bdynamic -Lbin -Wl,avbin \
+	-Wl,-Bdynamic -Lbin -lavbin64 \
 	-o "$@"
+
 
 mex_compile: src/QTRAK/qtrak_common/fhistc.mexw64 \
              src/QTRAK/qtrak_common/FFGrab.mexw64
 
-qtrak_preprocess: bin src/QTRAK/qtrak_preprocess/qtrak_preprocess.m \
+qtrak_preprocess: src/QTRAK/qtrak_preprocess/qtrak_preprocess.m \
 		  mex_compile
 	"${MCC}" \
 	-v \
@@ -161,7 +142,7 @@ qtrak_preprocess: bin src/QTRAK/qtrak_preprocess/qtrak_preprocess.m \
 	-a src/QTRAK/qtrak_common/ProcessFrameMeanWin.m \
 	-a src/QTRAK/qtrak_common/ProcessFrameCapWin.m
 
-qtrak_cluster: bin src/QTRAK/qtrak_cluster/qtrak_cluster.m \
+qtrak_cluster: src/QTRAK/qtrak_cluster/qtrak_cluster.m \
 	       mex_compile
 	"${MCC}" \
 	-v \
@@ -174,14 +155,14 @@ qtrak_cluster: bin src/QTRAK/qtrak_cluster/qtrak_cluster.m \
 	-a src/QTRAK/qtrak_common/ProcessFrameMeanWin.m \
 	-a src/QTRAK/qtrak_common/ProcessFrameCapWin.m
 
-analysis: bin src/ANALYSIS/analysis.m
+analysis: src/ANALYSIS/analysis.m bin
 	"${MCC}" \
 	-v \
         -m analysis \
 	-d bin \
 	-I src/ANALYSIS
 
-gVision: bin src/gVision/gVision.m
+gVision: src/gVision/gVision.m bin
 	 "${MCC}" \
 	-v \
         -m gVision \
