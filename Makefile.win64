@@ -87,7 +87,7 @@ bin/FFGrab.exe: src/mex/FFGrab.cpp bin/${AVBIN_LIBNAME}
 bin/tutorial.o: src/mex/tutorial.c bin
 	${CC} ${CFLAGS} -c "$<" -o "$@"
 
-bin/tutorial: bin/tutorial.o bin/${AVBIN_LIBNAME}
+bin/tutorial.exe: bin/tutorial.o bin/${AVBIN_LIBNAME}
 	${LD} \
 	"$<" \
 	-o "$@" \
