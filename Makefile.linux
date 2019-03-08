@@ -99,7 +99,7 @@ analysis: bin src/ANALYSIS/analysis.m
 	cp src/ANALYSIS/*.mat bin
 
 clean_mex:
-	-rm -f bin/tutorial.o bin/tutorial bin/FFGrab
+	-rm -f bin/FFGrab
 	-rm -f bin/avbin.o bin/libavbin.dylib
 	-rm -f src/QTRAK/qtrak_common/fhistc.mexa64
 	-rm -f src/QTRAK/qtrak_common/FFGrab.mexa64

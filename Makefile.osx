@@ -48,7 +48,7 @@ bin/FFGrab: src/QTRAK/qtrak_common/FFGrab.cpp bin/libavbin.dylib
 	-DTEST_FFGRAB \
 	src/QTRAK/qtrak_common/FFGrab.cpp \
 	-Lbin -lavbin \
-	-o $@ 
+	-o $@
 
 src/QTRAK/qtrak_common/fhistc.mexmaci64: src/QTRAK/qtrak_common/fhistc.c
 	${MATLAB_ROOT}/bin/mex \
