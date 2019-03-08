@@ -38,13 +38,12 @@ bin/avbin.o: src/mex/avbin.c src/mex/avbin.h bin
 	-o $@
 
 bin/${AVBIN_LIBNAME}: bin/avbin.o
-	${LD} ${LDFLAGS} \
-	-dylib \
+	${LD} ${LDFLAGS} -dylib \
 	-o $@ \
 	$< \
 	${STATIC_LIBS} ${LIBS}
 
-bin/FFGrab: src/mex/FFGrab.cpp bin/${AVBIN_LIBNAME}
+bin/FFGrab: src/mex/FFGrab.cpp src/mex/FFGrab.h bin/${AVBIN_LIBNAME}
 	${CPP} ${CFLAGS} \
 	-DTEST_FFGRAB \
 	$< \
@@ -63,17 +62,17 @@ bin/tutorial: bin/tutorial.o bin/${AVBIN_LIBNAME}
 
 src/QTRAK/qtrak_common/fhistc.mexmaci64: src/mex/fhistc.c
 	${MATLAB_ROOT}/bin/mex \
-	src/mex/fhistc.c \
+	$< \
 	-outdir src/QTRAK/qtrak_common \
 	-v
 
-src/QTRAK/qtrak_common/FFGrab.mexmaci64: src/mex/FFGrab.cpp bin/${AVBIN_LIBNAME}
+src/QTRAK/qtrak_common/FFGrab.mexmaci64: src/mex/FFGrab.cpp src/mex/FFGrab.h bin/${AVBIN_LIBNAME}
 	${MATLAB_ROOT}/bin/mex \
 	-I${LIBAV_INSTALL}/include \
-	src/mex/FFGrab.cpp \
-	-Lbin -lavbin64 \
-	-outdir src/QTRAK/qtrak_common \
- 	-v
+        $< \
+        -Lbin -lavbin64 \
+        -outdir src/QTRAK/qtrak_common \
+        -v
 
 mex_compile: src/QTRAK/qtrak_common/fhistc.mexmaci64 \
              src/QTRAK/qtrak_common/FFGrab.mexmaci64
