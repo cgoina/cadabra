@@ -42,8 +42,7 @@ public:
     ~Grabber()
     {
         // clean up any remaining memory...
-        for (vector<uint8_t*>::iterator i=frames.begin();i != frames.end(); i++)
-        	av_free(*i);
+        for (vector<uint8_t*>::iterator i=frames.begin();i != frames.end(); i++) av_free(*i);
     }
 
     AVbinStream* stream;
