@@ -7,7 +7,6 @@ CPP=/misc/local/gcc-8.2.0/bin/g++
 LD=ld
 LIBAV_INSTALL=build
 CFLAGS += -fPIC \
-       	  -DDEBUG_LEVEL=48 \
           -I${LIBAV_INSTALL}/include
 
 LDFLAGS += -shared -Bsymbolic -zmuldefs

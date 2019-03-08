@@ -3,21 +3,34 @@ This is a repackaging of CADABRA code from CALTECH [http://www.vision.caltech.ed
 
 # Build FFMPEG libraries
 
+## Prepare the build (all platforms)
 ```
 git submodule init
 git submodule update
 mkdir build
 cd build
-../libav/configure --prefix=.
+# configure libav - see the platform specific instructions
 make install
 ```
 
-On windows to configure with mingw run:
+## Configure LIBAV build instructions
+
+### MacOSX
 ```
-sh ..\libav\configure --prefix=. --target-os=mingw32 --arch=x86_64
+../libav/configure --prefix=.
+```
+
+### Win64 with mingw
+```
+sh ..\libav\configure --prefix=. --target-os=mingw32 --arch=x86_64 --enable-pic
+```
+
+### Linux
+```
+../libav/configure --prefix=. --enable-pic
 ```
 
 # Build CADABRA tools
 
-## OSX
-make -f Makefile.osx qtrak_preprocess qtrak_cluster analysis gVision
+make -f Makefile.<platform_extension>
+
