@@ -146,10 +146,10 @@ int Grabber::grabVideoPacket(AVbinPacket *packet, double from_timestamp, int cap
         FFprintf("grabVideoPacket: allocated %d bytes for videobuf\n", numBytes);
 
     int nBytesRead = avbin_decode_video_frame(stream, packet, videobuf, numBytes);
-    if (DEBUG_LEVEL > 0) FFprintf("avbin_decode_video_frame nBytesRead = %d\n", nBytesRead);
     if (nBytesRead < 0)
     {
-        FFprintf("grabVideoPacket: avbin_decode_video_frame result=%d!\n", nBytesRead);
+        if (DEBUG_LEVEL > 0)
+            FFprintf("grabVideoPacket error: avbin_decode_video_frame result=%d!\n", nBytesRead);
         // silently ignore decode errors
         frameNr--;
         av_free(videobuf);
@@ -166,7 +166,7 @@ int Grabber::grabVideoPacket(AVbinPacket *packet, double from_timestamp, int cap
         av_free(videobuf);
         return 0;
     } else {
-        if (DEBUG_LEVEL > 0) FFprintf("Push videobuf %f: %d bytes to %p\n", from_timestamp, nBytesRead, videobuf);
+        if (DEBUG_LEVEL > 0) FFprintf("Push videobuf at %f: %d bytes to %p\n", from_timestamp, nBytesRead, videobuf);
         frames.push_back(videobuf);
         frameBytes.push_back(nBytesRead);
         frameTimes.push_back(from_timestamp);
@@ -547,7 +547,7 @@ void FFGrabber::runMatlabCommand(Grabber* G)
         mxGetPr(prhs[5])[0] = G->frameTimes.back();
 
         /* Free the video buffer memory */
-        free(*lastframe);
+        av_free(*lastframe);
         *lastframe = NULL;
 
 
@@ -804,7 +804,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         if (nlhs >= 1) {plhs[0] = mxCreateDoubleMatrix(1,1,mxREAL); mxGetPr(plhs[0])[0] = nrVideo; }
         if (nlhs >= 2) {plhs[1] = mxCreateDoubleMatrix(1,1,mxREAL); mxGetPr(plhs[1])[0] = nrAudio; }
     } else if (!strcmp("getVideoFrame",cmd)) {
-        if (nrhs < 3 || !mxIsNumeric(prhs[1]) || !mxIsNumeric(prhs[2])) mexErrMsgTxt("getVideoFrame: second parameter must be the audio stream id (as a number) and third parameter must be the frame number");
+        if (nrhs < 3 || !mxIsNumeric(prhs[1]) || !mxIsNumeric(prhs[2])) mexErrMsgTxt("getVideoFrame: second parameter must be the video stream id (as a number) and third parameter must be the frame number");
         if (nlhs > 2) mexErrMsgTxt("getVideoFrame: there are only 2 output value: data");
 
         unsigned int id = (unsigned int)mxGetScalar(prhs[1]);
@@ -820,8 +820,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
         dims[0] = nrBytes;
         plhs[0] = mxCreateNumericArray(2, dims, mxUINT8_CLASS, mxREAL); // empty 2d matrix
-        memcpy(mxGetPr(plhs[0]),data,nrBytes);
-        free(data);
+        memcpy(mxGetPr(plhs[0]), data, nrBytes);
+        av_free(data);
         if (nlhs >= 2) {plhs[1] = mxCreateDoubleMatrix(1,1,mxREAL); mxGetPr(plhs[1])[0] = time; }
     } else if (!strcmp("getAudioFrame",cmd)) {
         if (nrhs < 3 || !mxIsNumeric(prhs[1]) || !mxIsNumeric(prhs[2])) mexErrMsgTxt("getAudioFrame: second parameter must be the audio stream id (as a number) and third parameter must be the frame number");
@@ -868,7 +868,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                         tmpdata[i] = (((0x80&data[i*3+2])?-1:0)&0xFF000000) | ((data[i*3+2]<<16)+(data[i*3+1]<<8)+data[i*3]);
                 }
 
-                free(data);
+                av_free(data);
                 data = (uint8_t*)tmpdata;
 
                 mxClass = mxINT32_CLASS;
@@ -892,7 +892,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
         plhs[0] = mxCreateNumericArray(2, dims, mxClass, mxREAL); // empty 2d matrix
         memcpy(mxGetPr(plhs[0]),data,nrBytes);
-        free(data);
+        av_free(data);
         if (nlhs >= 2) {plhs[1] = mxCreateDoubleMatrix(1,1,mxREAL); mxGetPr(plhs[1])[0] = time; }
     } else if (!strcmp("setFrames",cmd)) {
         if (nrhs < 2 || !mxIsDouble(prhs[1])) mexErrMsgTxt("setFrames: second parameter must be the frame numbers (as doubles)");
@@ -927,9 +927,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
         if (strlen(matlabCommand)==0)
         {
-                FFG.setMatlabCommand(NULL);
-                free(matlabCommand);
-        } else FFG.setMatlabCommand(matlabCommand);
+            FFG.setMatlabCommand(NULL);
+            free(matlabCommand);
+        }
+        else
+        {
+            if (DEBUG_LEVEL > 0) FFprintf("Set matlab command: %s\n", matlabCommand);
+            FFG.setMatlabCommand(matlabCommand);
+        }
     } else if (!strcmp("cleanUp",cmd)) {
         if (nlhs > 0) mexErrMsgTxt("cleanUp: there are no outputs");
         FFG.cleanUp();
@@ -951,6 +956,23 @@ int main(int argc, char** argv)
     FFG.doCapture();
     int nrVideo, nrAudio;
     FFG.getCaptureInfo(&nrVideo, &nrAudio);
+    int video_id = 0;
+    unsigned int frame_nr = 100;
+    uint8_t* data_ptr;
+    unsigned int nbytes;
+    double time;
+    for (int fi = 0; fi < 100; fi++)
+    {
+        printf("get video frame %d %ud\n", video_id, frame_nr + fi);
+        int res = FFG.getVideoFrame(video_id,
+                                    frame_nr + fi,
+                                    &data_ptr,
+                                    &nbytes,
+                                    &time);
+        printf("video frame %d %u res %d %p %u %f\n",
+               video_id, frame_nr + fi, res, data_ptr, nbytes, time);
+    }
+    printf("Cleanup\n");
     FFG.cleanUp();
 
     printf("there are %d video streams, and %d audio.\n",nrVideo,nrAudio);

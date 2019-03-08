@@ -49,8 +49,7 @@ MEX_CFLAGS=-DMATLAB_DEFAULT_RELEASE=R2017b \
 	   -DNDEBUG
 
 MEX_CPPFLAGS=${MEX_CFLAGS} \
-             -std=c++11 \
-	     -I${LIBAV_INSTALL}/include
+             -std=c++11
 
 MEX_API_VERSION=${MATLAB_ROOT}/extern/version/c_mexapi_version.c
 
@@ -79,7 +78,7 @@ bin/${AVBIN_LIBNAME}: bin/avbin.o
 	${LIBS} ${SYSTEM_LIBS}
 
 bin/FFGrab.exe: src/mex/FFGrab.cpp bin/${AVBIN_LIBNAME}
-	${CPP} \
+	${CPP} ${CFLAGS} \
 	-I${LIBAV_INSTALL}/include \
 	-DTEST_FFGRAB \
 	"$<" \
@@ -110,20 +109,23 @@ src/QTRAK/qtrak_common/fhistc.mexw64: bin/fhistc.o bin/c_mexapi_version.o
 	bin/fhistc.o bin/c_mexapi_version.o \
 	${MEX_LIBS}
 
-bin/FFGrab.o: src/mex/FFGrab.cpp bin
-	${CPP} -c ${MEX_CPPFLAGS} "$<" -o "$@"
+bin/FFGrab.oo: src/mex/FFGrab.cpp bin
+	${CPP} -c ${CFLAGS} ${MEX_CPPFLAGS} "$<" -o "$@"
 
-src/QTRAK/qtrak_common/FFGrab.mexw64: bin/c_mexapi_version.o \
-				      bin/FFGrab.o \
+bin/c_mexapi_version.oo: bin
+	${CPP} ${MEX_CPPFLAGS} -c "${MEX_API_VERSION}" -o bin/c_mexapi_version.oo
+
+src/QTRAK/qtrak_common/FFGrab.mexw64: bin/c_mexapi_version.oo \
+				      bin/FFGrab.oo \
 				      bin/${AVBIN_LIBNAME}
 	${CPP} \
 	-m64 -Wl,--no-undefined \
 	-shared -static -s \
 	-Wl,"${MATLAB_ROOT}/extern/lib/win64/mingw64/exportsmexfileversion.def" \
-	bin/FFGrab.o bin/c_mexapi_version.o \
+	bin/FFGrab.oo bin/c_mexapi_version.o \
 	${MEX_LIBS} \
-	-Wl,-Bdynamic -Lbin -lavbin64 \
-	-o "$@"
+	-o "$@" \
+	-Wl,-Bdynamic -Lbin -lavbin64
 
 
 mex_compile: src/QTRAK/qtrak_common/fhistc.mexw64 \
@@ -176,7 +178,7 @@ gVision: src/gVision/gVision.m bin
 	-a ${MATLAB_SUPPORT_PACKAGES}/pointgrey/adaptor/win64/mwpointgreyimaq.dll
 
 clean_mex:
-	-rm -f bin/avbin.o bin/libavbin.dll
+	-rm -f bin/avbin.o bin/${AVBIN_LIBNAME} bin/${AVBIN_STATIC_LIBNAME}
 	-rm -f src/QTRAK/qtrak_common/fhistc.mexw64
 	-rm -f src/QTRAK/qtrak_common/FFGrab.mexw64
 

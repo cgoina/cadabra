@@ -344,13 +344,11 @@ int32_t avbin_decode_video_frame(AVbinStream *stream, AVbinPacket* packet,
         stream->codec_context->height,
         32
     );
-    Logprintf("avbin_decode_video_frame: av_image_fill_arrays linesize=%d, width=%d, height=%d nbytes=%d, output size=%d\n",
-              pFrameRGB->linesize[0], stream->codec_context->width, stream->codec_context->height, nbytes, output_size);
     if (nbytes < 0)
     {
         return -1;
     }
-	int32_t ret = avcodec_send_packet(stream->codec_context, packet->packet);
+    int32_t ret = avcodec_send_packet(stream->codec_context, packet->packet);
     if (ret < 0)
     {
         // could not send packet for decoding
@@ -377,7 +375,6 @@ int32_t avbin_decode_video_frame(AVbinStream *stream, AVbinPacket* packet,
             break;
         } else {
             // successful decoding => convert the image from its native format to RGB
-            Logprintf("avcodec_receive_frame successfully decoded packet result=%d!\n", ret);
             sws_scale(stream->sws_ctx,
                       (uint8_t const * const *)stream->frame->data,
                       stream->frame->linesize,
@@ -388,12 +385,16 @@ int32_t avbin_decode_video_frame(AVbinStream *stream, AVbinPacket* packet,
             );
 
             // align the line size to be <frame_width> * <bytes_per_pixels> 
+            int result_image_nbytes = 0;
+            int result_image_linesize = stream->frame->width * 3; // 3 bytes per pixel
             for (int y = 0; y < stream->frame->height; y++)
             {
-                memcpy(output_buffer + y * stream->frame->width * 3, // in this case we have 3 bytes per pixel
+              memcpy(output_buffer + y * result_image_linesize,
                        output_buffer + y * pFrameRGB->linesize[0],
-                       stream->frame->width * 3);
+                       result_image_linesize);
+                result_image_nbytes += result_image_linesize;
             }
+            ret = result_image_nbytes;
             Logprintf("av_image_copy_to_buffer -> %d!\n", ret);
             break;
         }
