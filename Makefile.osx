@@ -1,17 +1,16 @@
 default: qtrak_preprocess qtrak_cluster analysis gVision
 
-MIN_OSX_VERSION=10.14
+MIN_OSX_VERSION = 10.14
 
 CC = clang
 CPP = clang++
 LD = ld
 LIBAV_INSTALL = build
 CFLAGS += -arch x86_64 -I${LIBAV_INSTALL}/include
-AVBIN_LIBNAME = libavbin.dylib
+AVBIN_LIBNAME = libavbin64.dylib
 MCC = ${MATLAB_ROOT}/bin/mcc
 
-LDFLAGS += -dylib \
-           -arch x86_64 \
+LDFLAGS += -arch x86_64 \
            -macosx_version_min ${MIN_OSX_VERSION} \
            -framework CoreFoundation \
            -framework CoreVideo \
@@ -40,6 +39,7 @@ bin/avbin.o: src/mex/avbin.c src/mex/avbin.h bin
 
 bin/${AVBIN_LIBNAME}: bin/avbin.o
 	${LD} ${LDFLAGS} \
+	-dylib \
 	-o $@ \
 	$< \
 	${STATIC_LIBS} ${LIBS}
@@ -49,16 +49,17 @@ bin/FFGrab: src/mex/FFGrab.cpp bin/${AVBIN_LIBNAME}
 	-DTEST_FFGRAB \
 	$< \
 	-o $@ \
-	-Lbin -lavbin
+	-Lbin -lavbin64
 
 bin/tutorial.o: src/mex/tutorial.c bin
 	${CC} ${CFLAGS} -c $< -o $@
 
 bin/tutorial: bin/tutorial.o bin/${AVBIN_LIBNAME}
-	${LD} \
+	${LD} ${LDFLAGS} \
 	$< \
-	-o $@ \
-	-Lbin -lavbin64
+	-Lbin -lavbin64 \
+        -o $@ \
+	${LIBS}
 
 src/QTRAK/qtrak_common/fhistc.mexmaci64: src/mex/fhistc.c
 	${MATLAB_ROOT}/bin/mex \
@@ -70,7 +71,7 @@ src/QTRAK/qtrak_common/FFGrab.mexmaci64: src/mex/FFGrab.cpp bin/${AVBIN_LIBNAME}
 	${MATLAB_ROOT}/bin/mex \
 	-I${LIBAV_INSTALL}/include \
 	src/mex/FFGrab.cpp \
-	-Lbin -lavbin \
+	-Lbin -lavbin64 \
 	-outdir src/QTRAK/qtrak_common \
  	-v
 
