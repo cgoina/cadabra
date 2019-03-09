@@ -32,5 +32,12 @@ sh ..\libav\configure --prefix=. --target-os=mingw32 --arch=x86_64 --enable-pic
 
 # Build CADABRA tools
 
-make -f Makefile.<platform_extension>
+On linux make sure the gcc-6 binary and libraries are in the PATH and LD_LIBRARY_PATH respectively.
+gcc-6 is the current version supported by mex. 
 
+```
+source env.linux.sh
+```
+```
+make -f Makefile.<platform_extension>
+```
