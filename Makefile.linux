@@ -2,16 +2,19 @@ default: qtrak_preprocess qtrak_cluster analysis
 
 MATLAB_ROOT = /misc/local/matlab-2018b
 
-CC = /misc/local/gcc-8.2.0/bin/gcc
-CPP = /misc/local/gcc-8.2.0/bin/g++
-LD =ld
+CC = gcc
+CPP = g++
+LD = ld
+
 LIBAV_INSTALL = build
+AVBIN_LIBNAME = libavbin.so.1
+DEBUG_LEVEL = 0
 CFLAGS += -fPIC \
+          -DDEBUG_LEVEL=${DEBUG_LEVEL} \
           -I${LIBAV_INSTALL}/include
-AVBIN_LIBNAME = libavbin64.so
 MCC = ${MATLAB_ROOT}/bin/mcc
 
-LDFLAGS += -Bsymbolic -zmuldefs
+LDFLAGS += -arch x86_64 -Bsymbolic -zmuldefs
 
 STATIC_LIBS = -whole-archive \
               ${LIBAV_INSTALL}/lib/libavcodec.a \
@@ -24,6 +27,8 @@ STATIC_LIBS = -whole-archive \
 
 LIBS = -lz -lbz2 -lm -lpthread
 
+SYSTEM_LIBS = -lc
+
 bin:
 	mkdir -p bin
 
@@ -33,8 +38,9 @@ bin/avbin.o: src/mex/avbin.c src/mex/avbin.h bin
         -o $@
 
 bin/${AVBIN_LIBNAME}: bin/avbin.o
-	${LD} ${LDFLAGS} -shared \
+	${LD} ${LDFLAGS} -shared -soname ${AVBIN_LIBNAME} \
 	-o $@ \
+        --whole-archive ${old_libs} \
 	$< \
 	${STATIC_LIBS} \
 	${LIBS}
@@ -44,17 +50,16 @@ bin/FFGrab: src/mex/FFGrab.cpp src/mex/FFGrab.h bin/${AVBIN_LIBNAME}
         -DTEST_FFGRAB \
         $< \
         -o $@ \
-        -Lbin -lavbin
+	bin/${AVBIN_LIBNAME}
 
 bin/tutorial.o: src/mex/tutorial.c bin
 	${CC} ${CFLAGS} -c $< -o $@
 
 bin/tutorial: bin/tutorial.o bin/${AVBIN_LIBNAME}
-	${LD} ${LDFLAGS} \
+	${CC} \
 	$< \
-	-Lbin -lavbin64 \
         -o $@ \
-	${LIBS}
+	bin/${AVBIN_LIBNAME}
 
 src/QTRAK/qtrak_common/fhistc.mexa64: src/mex/fhistc.c
 	${MATLAB_ROOT}/bin/mex \
@@ -66,7 +71,7 @@ src/QTRAK/qtrak_common/FFGrab.mexa64: src/mex/FFGrab.cpp src/mex/FFGrab.h bin/${
 	${MATLAB_ROOT}/bin/mex \
 	-I${LIBAV_INSTALL}/include \
 	$< \
-	-Lbin -lavbin \
+	bin/${AVBIN_LIBNAME} \
 	-outdir src/QTRAK/qtrak_common \
 	-v
 
