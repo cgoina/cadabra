@@ -45,4 +45,4 @@ make -f Makefile.<platform_extension>
 
 # Running CADABRA tools.
 
-In order to run qtrak you will need MATLAB-2018b runtime which can be installed following the directions provided [here|https://www.mathworks.com/help/compiler/install-the-matlab-runtime.html]
+In order to run qtrak you will need MATLAB-2018b runtime which can be installed following the directions provided [here](https://www.mathworks.com/help/compiler/install-the-matlab-runtime.html)
