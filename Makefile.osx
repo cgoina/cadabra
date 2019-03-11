@@ -1,6 +1,6 @@
 default: qtrak_preprocess qtrak_cluster analysis gVision
 
-MIN_OSX_VERSION = 10.14
+MIN_OSX_VERSION = 10.9
 
 CC = clang
 CPP = clang++
@@ -16,7 +16,6 @@ LIBRARY_FRAMEWORKS = -framework CoreFoundation \
 
 LDFLAGS += -arch x86_64 \
            -macosx_version_min ${MIN_OSX_VERSION}
-
 
 STATIC_LIBS = ${LIBAV_INSTALL}/lib/libavcodec.a \
               ${LIBAV_INSTALL}/lib/libavfilter.a \
