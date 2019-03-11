@@ -71,23 +71,14 @@ src/QTRAK/qtrak_common/fhistc.mexmaci64: src/mex/fhistc.c
 	-outdir src/QTRAK/qtrak_common \
 	-v
 
-#	LINKLIBS="${MATLAB_LIBS} ${LIBRARY_FRAMEWORKS}" \
-#        MACOSX_DEPLOYMENT_TARGET=${MIN_OSX_VERSION} \
-
-src/QTRAK/qtrak_common/FFGrab.mexmaci64: src/mex/FFGrab.cpp src/mex/FFGrab.h bin/${AVBIN_LIBNAME}
+src/QTRAK/qtrak_common/FFGrab.mexmaci64: src/mex/FFGrab.cpp src/mex/FFGrab.h bin/avbin.o
 	${MATLAB_ROOT}/bin/mex \
-	-f src/mex/mex_C++_maci64.xml \
         -I${LIBAV_INSTALL}/include \
         $< \
         bin/avbin.o \
-        ${STATIC_LIBS} \
-        -lz -lbz2 \
+	LINKLIBS="${STATIC_LIBS} -lz -lbz2 ${MATLAB_LIBS} ${LIBRARY_FRAMEWORKS}" \
         -outdir src/QTRAK/qtrak_common \
         -v
-
-
-#        LDFLAGS="-arch x86_64" \
-
 
 mex_compile: src/QTRAK/qtrak_common/fhistc.mexmaci64 \
              src/QTRAK/qtrak_common/FFGrab.mexmaci64
@@ -138,6 +129,9 @@ gVision: bin src/gVision/gVision.m
 	-I ${MATLAB_SUPPORT_PACKAGES}/genericvideo/mwgenericvideoimaq.m \
 	-a ${MATLAB_SUPPORT_PACKAGES}/genericvideo/adaptor/maci64/mwmacvideoimaq.dylib
 
+clean_libav:
+	-rm -rf build
+
 clean_mex:
 	-rm -f bin/FFGrab
 	-rm -f bin/avbin.o bin/${AVBIN_LIBNAME}
@@ -146,3 +140,4 @@ clean_mex:
 
 clean:
 	-rm -rf bin
+
