@@ -1,3 +1,5 @@
 [submodule "libav"]
 	path = libav
 	url = git@github.com:libav/libav.git
+	branch = release/12
+
