@@ -13,10 +13,6 @@ extern "C" {
 #include <libavutil/mathematics.h>
 #include <libswscale/swscale.h>
 
-#ifdef __cplusplus
-}
-#endif
-
 /**
  * Point in time, or a time range; given in microseconds.
  */
@@ -269,5 +265,9 @@ int32_t avbin_read_next_packet(AVbinFile* file, AVbinPacket* packet);
 int32_t avbin_decode_audio(AVbinStream* stream, AVbinPacket* packet);
 int32_t avbin_decode_video_frame(AVbinStream* stream, AVbinPacket* packet,
                                  uint8_t* output_buffer, int output_size);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // end AVBIN_H

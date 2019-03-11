@@ -10,11 +10,13 @@ CFLAGS += -arch x86_64 -I${LIBAV_INSTALL}/include
 AVBIN_LIBNAME = libavbin64.dylib
 MCC = ${MATLAB_ROOT}/bin/mcc
 
+LIBRARY_FRAMEWORKS = -framework CoreFoundation \
+                     -framework CoreVideo \
+                     -framework VideoDecodeAcceleration
+
 LDFLAGS += -arch x86_64 \
-           -macosx_version_min ${MIN_OSX_VERSION} \
-           -framework CoreFoundation \
-           -framework CoreVideo \
-           -framework VideoDecodeAcceleration
+           -macosx_version_min ${MIN_OSX_VERSION}
+
 
 STATIC_LIBS = ${LIBAV_INSTALL}/lib/libavcodec.a \
               ${LIBAV_INSTALL}/lib/libavfilter.a \
@@ -22,6 +24,9 @@ STATIC_LIBS = ${LIBAV_INSTALL}/lib/libavcodec.a \
               ${LIBAV_INSTALL}/lib/libavresample.a \
               ${LIBAV_INSTALL}/lib/libavutil.a \
               ${LIBAV_INSTALL}/lib/libswscale.a \
+
+MATLAB_LIBS = -L${MATLAB_ROOT}/bin/maci64 -lmx -lmex -lmat \
+              -L${MATLAB_ROOT}/extern/bin/maci64 -lMatlabDataArray -lMatlabEngine
 
 LIBS = -lSystem \
        -lz \
@@ -41,7 +46,7 @@ bin/${AVBIN_LIBNAME}: bin/avbin.o
 	${LD} ${LDFLAGS} -dylib \
 	-o $@ \
 	$< \
-	${STATIC_LIBS} ${LIBS}
+	${STATIC_LIBS} ${LIBS} ${LIBRARY_FRAMEWORKS}
 
 bin/FFGrab: src/mex/FFGrab.cpp src/mex/FFGrab.h bin/${AVBIN_LIBNAME}
 	${CPP} ${CFLAGS} \
@@ -66,13 +71,23 @@ src/QTRAK/qtrak_common/fhistc.mexmaci64: src/mex/fhistc.c
 	-outdir src/QTRAK/qtrak_common \
 	-v
 
+#	LINKLIBS="${MATLAB_LIBS} ${LIBRARY_FRAMEWORKS}" \
+#        MACOSX_DEPLOYMENT_TARGET=${MIN_OSX_VERSION} \
+
 src/QTRAK/qtrak_common/FFGrab.mexmaci64: src/mex/FFGrab.cpp src/mex/FFGrab.h bin/${AVBIN_LIBNAME}
 	${MATLAB_ROOT}/bin/mex \
-	-I${LIBAV_INSTALL}/include \
+	-f src/mex/mex_C++_maci64.xml \
+        -I${LIBAV_INSTALL}/include \
         $< \
-        -Lbin -lavbin64 \
+        bin/avbin.o \
+        ${STATIC_LIBS} \
+        -lz -lbz2 \
         -outdir src/QTRAK/qtrak_common \
         -v
+
+
+#        LDFLAGS="-arch x86_64" \
+
 
 mex_compile: src/QTRAK/qtrak_common/fhistc.mexmaci64 \
              src/QTRAK/qtrak_common/FFGrab.mexmaci64
