@@ -16,14 +16,12 @@ MCC = ${MATLAB_ROOT}/bin/mcc
 
 LDFLAGS += -arch x86_64 -Bsymbolic -zmuldefs
 
-STATIC_LIBS = -whole-archive \
-              ${LIBAV_INSTALL}/lib/libavcodec.a \
+STATIC_LIBS = ${LIBAV_INSTALL}/lib/libavcodec.a \
               ${LIBAV_INSTALL}/lib/libavfilter.a \
               ${LIBAV_INSTALL}/lib/libavformat.a \
               ${LIBAV_INSTALL}/lib/libavresample.a \
               ${LIBAV_INSTALL}/lib/libavutil.a \
-              ${LIBAV_INSTALL}/lib/libswscale.a \
-              -no-whole-archive
+              ${LIBAV_INSTALL}/lib/libswscale.a
 
 LIBS = -lz -lbz2 -lm -lpthread
 
@@ -42,7 +40,9 @@ bin/${AVBIN_LIBNAME}: bin/avbin.o
 	-o $@ \
         --whole-archive ${old_libs} \
 	$< \
-	${STATIC_LIBS} \
+	-whole-archive \
+        ${STATIC_LIBS} \
+        -no-whole-archive \
 	${LIBS}
 
 bin/FFGrab: src/mex/FFGrab.cpp src/mex/FFGrab.h bin/${AVBIN_LIBNAME}
