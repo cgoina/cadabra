@@ -27,6 +27,7 @@ sh ..\libav\configure --prefix=. --target-os=mingw32 --arch=x86_64 --enable-pic
 
 ### Linux
 ```
+source env.linux.sh
 ../libav/configure --prefix=. --enable-pic
 ```
 
